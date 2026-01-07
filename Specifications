@@ -233,3 +233,8 @@ Fonctionnalités associées :
 mise en évidence des nœuds centraux
 exploration par clic
 filtrage dynamique
+
+7. Analyse des données : les athlètes les plus populaires
+Utilisation de dbo:wikiPageWikiLink pour définir un graphe entre les athlètes
+-PageRank sur le graphe 
+-(clustering)

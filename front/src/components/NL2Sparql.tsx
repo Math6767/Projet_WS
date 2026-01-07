@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Sparkles, ArrowRight, Copy, Check, Wand2 } from "lucide-react";
+import { Sparkles, ArrowRight, Copy, Check, Wand2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const NL2Sparql = () => {
   const [query, setQuery] = useState("");
   const [generatedSparql, setGeneratedSparql] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
 
   const exampleQueries = [
     "Quels athlètes français ont gagné le plus de médailles d'or en athlétisme ?",
@@ -18,27 +20,41 @@ const NL2Sparql = () => {
   const handleGenerate = async () => {
     if (!query.trim()) return;
     setIsGenerating(true);
+    setError("");
     
-    // Simulation - sera connecté à l'API LLM
-    setTimeout(() => {
-      setGeneratedSparql(`PREFIX dbo: <http://dbpedia.org/ontology/>
-PREFIX dbr: <http://dbpedia.org/resource/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    try {
+      // Appel au backend local (plus de CORS, clé API côté serveur)
+      const response = await fetch("http://localhost:3001/api/nl2sparql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query }),
+      });
 
-SELECT ?athlete ?name (COUNT(?medal) AS ?goldMedals)
-WHERE {
-  ?athlete a dbo:Athlete ;
-           dbo:nationality dbr:France ;
-           rdfs:label ?name ;
-           dbo:medal ?medal .
-  ?medal dbo:type dbr:Gold_medal .
-  FILTER(LANG(?name) = "fr")
-}
-GROUP BY ?athlete ?name
-ORDER BY DESC(?goldMedals)
-LIMIT 10`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Réponse d'erreur:", errorData);
+        throw new Error(errorData.error || `Erreur ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Réponse de l'API:", data);
+      
+      const sparqlQuery = data.choices?.[0]?.message?.content?.trim() || "";
+      
+      if (!sparqlQuery) {
+        throw new Error("La réponse de l'API est vide. Réessayez.");
+      }
+
+      setGeneratedSparql(sparqlQuery);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Erreur lors de la génération";
+      setError(errorMessage);
+      console.error("Erreur complète:", err);
+    } finally {
       setIsGenerating(false);
-    }, 1500);
+    }
   };
 
   const handleCopy = () => {
@@ -67,6 +83,13 @@ LIMIT 10`);
 
           {/* Input area */}
           <div className="rounded-xl border border-border bg-card p-6">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <div className="mb-4">
               <label className="mb-2 block text-sm font-medium">
                 Votre question
@@ -152,9 +175,7 @@ LIMIT 10`);
                   <ArrowRight className="h-4 w-4" />
                   Exécuter sur DBpedia
                 </Button>
-                <Button variant="ghost" className="gap-2">
-                  Modifier manuellement
-                </Button>
+                
               </div>
             </div>
           )}
