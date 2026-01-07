@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Network, Users, Globe, BarChart3 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import GraphView from "@/components/GraphView";
 
 const Graphs = () => {
   const [athleteRankData] = useState([]);
@@ -102,7 +103,7 @@ const Graphs = () => {
             </p>
 
             {/* PageRank Graph Visualization */}
-            <div className="mt-8 rounded-xl border border-border bg-card overflow-hidden">
+            {/* <div className="mt-8 rounded-xl border border-border bg-card overflow-hidden">
               <div className="flex items-center justify-between border-b border-border p-4">
                 <h3 className="font-display font-semibold">Visualisation du graphe PageRank</h3>
               </div>
@@ -111,6 +112,23 @@ const Graphs = () => {
                   <BarChart3 className="h-12 w-12 mx-auto text-bronze mb-4 opacity-50" />
                   <p className="text-muted-foreground">Graphe interactif à charger</p>
                 </div>
+              </div>
+            </div> */}
+            <div className="mt-8 rounded-xl border border-border bg-card overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-border p-4">
+                <h3 className="font-display font-semibold">Visualisation du graphe PageRank</h3>
+              </div>
+
+              {/* Graphe interactif */}
+              <div className="relative h-[500px] bg-secondary/20">
+                <GraphView
+                  gexfUrl="/athletes_clustered.gexf"
+                  width="100%"
+                  height="100%"
+                  defaultNodeColor="#1f77b4"
+                  renderLabels={false}
+                />
               </div>
             </div>
           </div>
