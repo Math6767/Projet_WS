@@ -1,0 +1,143 @@
+## **Analyse sémantique et graphique des performances olympiques : nations, athlètes et disciplines**
+
+## 1. Contexte et objectifs
+
+Les **Jeux Olympiques** constituent un événement mondial structuré autour d’un grand nombre d’entités interconnectées : athlètes, pays, disciplines sportives, éditions, médailles.
+Ce projet vise à exploiter le **Web de données** pour proposer une **exploration sémantique et relationnelle** des performances olympiques, en dépassant la simple consultation de tableaux de résultats.
+
+L’objectif est de :
+
+* structurer les connaissances issues de données ouvertes,
+* analyser les relations entre **athlètes**, **nations** et **sports**,
+* mettre en évidence des **profils olympiques** et des **dynamiques de performance** à l’aide de graphes et d’analyses de données.
+
+---
+
+## 2. Thématique choisie
+
+**Autre (validée via DBpedia)**
+→ Analyse des **Jeux Olympiques** comme domaine d’étude transversal (sport, géographie, histoire).
+
+Sources principales :
+
+* DBpedia
+* Entités liées aux Jeux Olympiques
+
+---
+
+## 3. Mise en œuvre selon les consignes
+
+### 3.1 Socle sémantique obligatoire – SPARQL & Linked Data
+
+Le projet repose sur l’interrogation de **DBpedia** via son endpoint SPARQL afin d’extraire des connaissances structurées sur :
+
+* les **athlètes olympiques**,
+* leurs **pays de représentation**,
+* les **disciplines sportives** pratiquées,
+* les **médailles obtenues**,
+* les **éditions des Jeux Olympiques**.
+
+Les requêtes SPARQL mises en œuvre incluront :
+
+* des **filtres temporels** (éditions, périodes),
+* des **agrégations** (comptage de médailles par pays, par sport),
+* des **chemins de propriétés** (athlète → pays → éditions → médailles),
+* des requêtes multi-entités permettant de relier athlètes, sports et nations.
+
+---
+
+### 3.2 Analyse et interprétation des données
+
+À partir des résultats SPARQL, plusieurs analyses seront proposées :
+
+#### a) Analyse des nations
+
+* Identification des **sports de spécialisation** par pays
+* Distinction entre nations polyvalentes et spécialisées
+* Évolution des performances d’un pays au fil du temps
+
+#### b) Analyse des athlètes
+
+* Athlètes multi-médaillés ou multi-disciplines
+* Rôle des athlètes dans la performance globale de leur nation
+* Détection d’athlètes centraux dans le graphe olympique
+
+#### c) Analyse par graphes
+
+* Construction d’un graphe **Athlète ↔ Sport ↔ Pays**
+* Visualisation avec **Gephi** (ou outil équivalent)
+* Calcul de métriques :
+
+  * centralité (PageRank, betweenness),
+  * détection de communautés (modularité),
+  * mise en évidence de clusters sport–nation.
+
+Ces analyses permettront d’interpréter les structures sous-jacentes aux performances olympiques.
+
+---
+
+### 3.3 IA générative & LLM (optionnel)
+
+Une interface augmentée pourra être proposée (si accès à un LLM disponible) :
+
+* **NL2SPARQL**
+  Transformation de questions en langage naturel vers des requêtes SPARQL
+  *Ex.* :
+
+  > « Quels athlètes ont le plus contribué aux médailles françaises en athlétisme ? »
+
+* **Synthèse de connaissances**
+  Génération automatique de résumés pédagogiques à partir des résultats SPARQL
+  (profil olympique d’un pays, d’un sport ou d’un athlète).
+
+* **Analyse de graphes assistée**
+  Interprétation textuelle des métriques issues de Gephi (communautés, centralités).
+
+Cette partie reste facultative conformément aux consignes.
+
+---
+
+## 4. Livrables attendus
+
+* **Plateforme logicielle** :
+
+  * code source documenté,
+  * instructions d’installation et d’exécution,
+  * exploration interactive des données olympiques.
+
+* **Rapport de synthèse** :
+
+  * description de l’architecture,
+  * modélisation sémantique retenue,
+  * requêtes SPARQL clés,
+  * analyses de graphes et interprétations,
+  * limites des données ouvertes (incomplétude, biais).
+
+* **Soutenance orale** :
+
+  * démonstration de l’outil,
+  * présentation de la démarche scientifique,
+  * discussion autour du Web sémantique et de ses apports.
+
+---
+
+## 5. Intérêt du sujet
+
+Ce sujet :
+
+* exploite pleinement les principes du **Web sémantique**,
+* repose sur des **requêtes SPARQL complexes**,
+* permet une **analyse graphique riche**,
+* reste compréhensible et attractif pour la soutenance,
+* est extensible (JO d’hiver, genre, villes hôtes, périodes historiques).
+
+---
+
+Si tu veux, je peux maintenant :
+
+* te fournir une **version ultra-courte (8 lignes)** pour dépôt officiel,
+* définir **les premières requêtes SPARQL exactes**,
+* t’aider à **délimiter le périmètre** pour rester raisonnable pour un hexanôme,
+* ou adapter le discours pour qu’il colle encore plus au style attendu par l’enseignant.
+
+Dis-moi 👍
