@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Play, Copy, RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSparql } from "@/context/SparqlContext";
 
 const exampleQueries = [
   {
@@ -53,6 +54,21 @@ const SparqlEditor = () => {
     results: { bindings: any[] };
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { sparqlQuery, executeQuery, setExecuteQuery } = useSparql();
+
+  // Quand une requête vient de NL2Sparql, mets à jour et exécute
+  useEffect(() => {
+    if (sparqlQuery) {
+      setQuery(sparqlQuery);
+    }
+  }, [sparqlQuery]);
+
+  useEffect(() => {
+    if (executeQuery && sparqlQuery) {
+      handleExecute();
+      setExecuteQuery(false);
+    }
+  }, [executeQuery]);
 
   const handleExecute = async () => {
     setIsLoading(true);
@@ -79,7 +95,7 @@ const SparqlEditor = () => {
   };
 
   return (
-    <section className="border-b border-border py-20">
+    <section className="border-b border-border py-20" data-sparql-editor>
       <div className="container">
         <div className="mb-8">
           <h2 className="font-display text-3xl font-bold">Interface SPARQL</h2>

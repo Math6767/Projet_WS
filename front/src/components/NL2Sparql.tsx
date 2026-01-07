@@ -3,6 +3,7 @@ import { Sparkles, ArrowRight, Copy, Check, Wand2, AlertCircle } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSparql } from "@/context/SparqlContext";
 
 const NL2Sparql = () => {
   const [query, setQuery] = useState("");
@@ -10,6 +11,7 @@ const NL2Sparql = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const { setSparqlQuery, setExecuteQuery } = useSparql();
 
   const exampleQueries = [
     "Quels athlètes français ont gagné le plus de médailles d'or en athlétisme ?",
@@ -61,6 +63,16 @@ const NL2Sparql = () => {
     navigator.clipboard.writeText(generatedSparql);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleExecuteInEditor = () => {
+    setSparqlQuery(generatedSparql);
+    setExecuteQuery(true);
+    // Scroll to SparqlEditor
+    const sparqlEditor = document.querySelector("[data-sparql-editor]");
+    if (sparqlEditor) {
+      sparqlEditor.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (
@@ -171,11 +183,14 @@ const NL2Sparql = () => {
               </pre>
 
               <div className="mt-4 flex gap-3">
-                <Button variant="outline" className="flex-1 gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 gap-2"
+                  onClick={handleExecuteInEditor}
+                >
                   <ArrowRight className="h-4 w-4" />
-                  Exécuter sur DBpedia
+                  Exécuter cette requête dans l'éditeur SPARQL
                 </Button>
-                
               </div>
             </div>
           )}

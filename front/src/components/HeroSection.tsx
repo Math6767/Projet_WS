@@ -25,7 +25,7 @@ const HeroSection = ({ onExplore }: HeroSectionProps) => {
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-sm">
             <span className="h-2 w-2 animate-pulse rounded-full bg-gold" />
-            <span className="text-muted-foreground">Propulsé par DBpedia & SPARQL</span>
+            <span className="text-muted-foreground">Propulsé par DBpedia, SPARQL et les 4IF</span>
           </div>
 
           {/* Main heading */}
