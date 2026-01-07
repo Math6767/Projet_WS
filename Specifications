@@ -132,3 +132,109 @@ Ce sujet :
 * est extensible (JO d’hiver, genre, villes hôtes, périodes historiques).
 
 ---
+
+Possibilités concrètes & fonctionnalités de la plateforme
+
+ 1. Exploration par pays
+
+Ce que l’utilisateur peut faire :
+Sélectionner un pays
+Voir :
+le nombre total de médailles (or / argent / bronze)
+la répartition des médailles par sport
+les sports de spécialisation du pays
+Comparer deux ou plusieurs pays
+mêmes sports dominants ?
+profils similaires ou opposés ?
+Visualiser :
+graphe Pays ↔ Sports
+évolution temporelle des performances
+Exemples de questions :
+Dans quels sports la France est-elle la plus performante ?
+Quels pays dominent la natation ?
+
+2. Exploration par athlète
+
+Fonctionnalités possibles :
+Rechercher un athlète
+Afficher :
+pays représenté
+sport(s) pratiqué(s)
+nombre et type de médailles
+éditions des JO auxquelles il/elle a participé
+Identifier :
+athlètes multi-médaillés
+athlètes multi-disciplines
+Visualiser :
+graphe Athlète ↔ Sport ↔ Pays
+position centrale de l’athlète dans le réseau
+Exemples :
+Quels athlètes ont le plus contribué aux médailles d’un pays ?
+Quels athlètes font le lien entre plusieurs sports ?
+
+3. Exploration par sport / discipline
+
+Fonctionnalités :
+Sélectionner un sport
+Voir :
+pays dominants dans ce sport
+athlètes majeurs
+nombre de médailles par édition
+Analyser :
+diversité géographique d’un sport
+sports dominés par peu de pays vs sports très ouverts
+Comparer :
+deux sports entre eux
+Exemples :
+Quels sports sont dominés par peu de nations ?
+Quels sports sont les plus internationaux ?
+
+4. Analyse des médailles
+
+Fonctionnalités :
+Filtres :
+type de médaille (or / argent / bronze)
+sport
+pays
+période
+Calculs :
+classement par médailles
+poids d’un sport dans le total d’un pays
+Visualisation :
+graphes pays–médailles
+histogrammes / courbes temporelles
+Exemples :
+Quel sport rapporte le plus de médailles à un pays ?
+Comment évoluent les médailles françaises depuis 1980 ?
+
+5. Analyses globales / découvertes
+
+Fonctionnalités plus “exploratoires” :
+Détection de profils olympiques :
+pays spécialisés
+pays polyvalents
+Détection de communautés :
+groupes de pays performants dans les mêmes sports
+Mise en évidence de :
+sports émergents
+changements de domination au fil du temps
+Exemples :
+Quels pays ont des profils olympiques similaires ?
+Quels sports gagnent en importance au fil des JO ?
+
+6. Visualisations par graphes (clé WS)
+
+Types de graphes possibles :
+Athlète ↔ Sport
+Sport ↔ Pays
+Athlète ↔ Pays
+Graphe tripartite Athlète ↔ Sport ↔ Pays
+Fonctionnalités associées :
+mise en évidence des nœuds centraux
+exploration par clic
+filtrage dynamique
+
+7. Analyse des données : les athlètes les plus populaires
+Utilisation de dbo:wikiPageWikiLink pour définir un graphe entre les athlètes
+-PageRank sur le graphe 
+-(clustering)
