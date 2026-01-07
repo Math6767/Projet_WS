@@ -46,9 +46,9 @@ const HeroSection = ({ onExplore }: HeroSectionProps) => {
               Commencer l'exploration
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
-            <Button variant="outline" size="xl">
+            {/*<Button variant="outline" size="xl">
               Voir la documentation
-            </Button>
+            </Button>*/}
           </div>
 
           {/* Stats */}

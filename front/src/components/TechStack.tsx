@@ -19,8 +19,8 @@ const TechStack = () => {
     },
     {
       icon: MessageSquare,
-      name: "LLM (optionnel)",
-      description: "NL2SPARQL et synthèse de connaissances",
+      name: "llama3 (70b)",
+      description: "NL2SPARQL via un modèle de langage avancé",
     },
   ];
 
