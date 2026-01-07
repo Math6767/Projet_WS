@@ -5,38 +5,41 @@ import { Button } from "@/components/ui/button";
 const exampleQueries = [
   {
     name: "Top 10 nations par médailles",
-    query: `SELECT ?country ?countryLabel (COUNT(?medal) AS ?medalCount)
+    query: `SELECT ?country (SAMPLE(?label) AS ?countryLabel) (COUNT(?medal) AS ?medalCount)
 WHERE {
   ?athlete dbo:olympicGames ?games .
   ?athlete dbo:country ?country .
   ?athlete dbo:medal ?medal .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr,en". }
+  ?country rdfs:label ?label .
+  FILTER (lang(?label) = 'fr')
 }
-GROUP BY ?country ?countryLabel
+GROUP BY ?country
 ORDER BY DESC(?medalCount)
 LIMIT 10`,
   },
   {
     name: "Athlètes français multi-médaillés",
-    query: `SELECT ?athlete ?athleteLabel (COUNT(?medal) AS ?medalCount)
+    query: `SELECT ?athlete (SAMPLE(?label) AS ?athleteLabel) (COUNT(?medal) AS ?medalCount)
 WHERE {
   ?athlete dbo:country dbr:France .
   ?athlete dbo:medal ?medal .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr,en". }
+  ?athlete rdfs:label ?label .
+  FILTER (lang(?label) = 'fr')
 }
-GROUP BY ?athlete ?athleteLabel
+GROUP BY ?athlete
 HAVING (COUNT(?medal) > 2)
 ORDER BY DESC(?medalCount)`,
   },
   {
     name: "Sports les plus disputés",
-    query: `SELECT ?sport ?sportLabel (COUNT(?event) AS ?eventCount)
+    query: `SELECT ?sport (SAMPLE(?label) AS ?sportLabel) (COUNT(?event) AS ?eventCount)
 WHERE {
   ?event dbo:sport ?sport .
   ?event rdf:type dbo:OlympicEvent .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr,en". }
+  ?sport rdfs:label ?label .
+  FILTER (lang(?label) = 'fr')
 }
-GROUP BY ?sport ?sportLabel
+GROUP BY ?sport
 ORDER BY DESC(?eventCount)
 LIMIT 20`,
   },
@@ -45,10 +48,34 @@ LIMIT 20`,
 const SparqlEditor = () => {
   const [query, setQuery] = useState(exampleQueries[0].query);
   const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<{
+    head: { vars: string[] };
+    results: { bindings: any[] };
+  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleExecute = () => {
+  const handleExecute = async () => {
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
+    setError(null);
+    setResults(null);
+
+    try {
+      const encodedQuery = encodeURIComponent(query);
+      const url = `https://dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fdbpedia.org&query=${encodedQuery}&format=application%2Fsparql-results%2Bjson&timeout=30000`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setResults(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur inconnue est survenue");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -131,13 +158,48 @@ const SparqlEditor = () => {
               </div>
             </div>
 
-            {/* Results placeholder */}
-            <div className="mt-4 rounded-xl border border-border bg-card p-6">
-              <div className="flex items-center justify-center text-muted-foreground">
-                <p className="text-sm">
-                  Les résultats de la requête apparaîtront ici
-                </p>
-              </div>
+            {/* Results placeholder or Table */}
+            <div className="mt-4 rounded-xl border border-border bg-card p-6 overflow-x-auto">
+              {error ? (
+                <div className="text-destructive font-medium p-4 border border-destructive/20 rounded bg-destructive/10">
+                  {error}
+                </div>
+              ) : results ? (
+                results.results.bindings.length > 0 ? (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left">
+                        {results.head.vars.map((variable) => (
+                          <th key={variable} className="p-2 font-medium text-muted-foreground">
+                            {variable}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.results.bindings.map((binding, i) => (
+                        <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-secondary/20">
+                          {results.head.vars.map((variable) => (
+                            <td key={variable} className="p-2 truncate max-w-[200px]" title={binding[variable]?.value}>
+                              {binding[variable]?.value || "-"}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="flex items-center justify-center text-muted-foreground p-8">
+                    Aucun résultat trouvé pour cette requête.
+                  </div>
+                )
+              ) : (
+                <div className="flex items-center justify-center text-muted-foreground p-8">
+                  <p className="text-sm">
+                    Les résultats de la requête apparaîtront ici
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
