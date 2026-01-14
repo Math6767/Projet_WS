@@ -22,8 +22,9 @@ const SPARQL_QUERY = `
 PREFIX dbo: <http://dbpedia.org/ontology/>
 PREFIX dbp: <http://dbpedia.org/property/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?personne (SAMPLE(?label) as ?name)
+SELECT ?personne ?discipline ?nation ?anneeMin ?anneeMax
        (SUM(?or) AS ?nbOr)
        (SUM(?argent) AS ?nbArgent)
        (SUM(?bronze) AS ?nbBronze)
@@ -49,19 +50,96 @@ WHERE {
 
       ?personne a dbo:Person .
 
-      ?evenement rdfs:label ?eventName .
-      FILTER (CONTAINS(LCASE(STR(?eventName)), "olympics"))
-      FILTER (!CONTAINS(LCASE(STR(?eventName)), "youth"))
+      ?evenement rdfs:label ?label .
+      FILTER (CONTAINS(LCASE(STR(?label)), "olympics"))
+      FILTER (!CONTAINS(LCASE(STR(?label)), "youth"))
     }
   }
   
-  OPTIONAL { ?personne rdfs:label ?label . FILTER(lang(?label) = 'en') }
-  
+  # -------- Discipline --------
+  {
+    SELECT ?personne (SAMPLE(?disciplineExtract) AS ?discipline)
+    WHERE {
+      {
+        ?evtDisc dbp:gold ?personne .
+      }
+      UNION
+      {
+        ?evtDisc dbp:silver ?personne .
+      }
+      UNION
+      {
+        ?evtDisc dbp:bronze ?personne .
+      }
+      
+      ?evtDisc rdfs:label ?labelEvenement .
+      FILTER (LANG(?labelEvenement) = "en")
+      FILTER (CONTAINS(LCASE(STR(?labelEvenement)), " at "))
+      
+      BIND(STRBEFORE(STR(?labelEvenement), " at ") AS ?disciplineExtract)
+    }
+    GROUP BY ?personne
+  }
+
+  # -------- Nation --------
+  {
+    SELECT ?personne (SAMPLE(?nation0) AS ?nation)
+    WHERE {
+      {
+        ?evtNat dbp:gold ?personne .
+        ?evtNat dbp:goldnoc ?nation0 .
+      }
+      UNION
+      {
+        ?evtNat dbp:silver ?personne .
+        ?evtNat dbp:silvernoc ?nation0 .
+      }
+      UNION
+      {
+        ?evtNat dbp:bronze ?personne .
+        ?evtNat dbp:bronzenoc ?nation0 .
+      }
+
+      ?evtNat rdfs:label ?l .
+      FILTER (CONTAINS(LCASE(STR(?l)), "olympics"))
+      FILTER (!CONTAINS(LCASE(STR(?l)), "youth"))
+    }
+    GROUP BY ?personne
+  }
+
+  # -------- Années min / max --------
+  {
+    SELECT ?personne
+           (MIN(?year) AS ?anneeMin)
+           (MAX(?year) AS ?anneeMax)
+    WHERE {
+      {
+        ?evtYear dbp:gold ?personne .
+      }
+      UNION
+      {
+        ?evtYear dbp:silver ?personne .
+      }
+      UNION
+      {
+        ?evtYear dbp:bronze ?personne .
+      }
+
+      ?evtYear dbp:games ?gamesStr .
+      BIND(xsd:integer(SUBSTR(STR(?gamesStr), 1, 4)) AS ?year)
+
+      ?evtYear rdfs:label ?lab .
+      FILTER (CONTAINS(LCASE(STR(?lab)), "olympics"))
+      FILTER (!CONTAINS(LCASE(STR(?lab)), "youth"))
+    }
+    GROUP BY ?personne
+  }
+ 
   BIND(IF(?typeMedaille = "Or", 1, 0) AS ?or)
   BIND(IF(?typeMedaille = "Argent", 1, 0) AS ?argent)
   BIND(IF(?typeMedaille = "Bronze", 1, 0) AS ?bronze)
 }
-GROUP BY ?personne
+GROUP BY ?personne ?discipline ?nation ?anneeMin ?anneeMax
 ORDER BY DESC(?total)
 `;
 
@@ -72,12 +150,15 @@ const Athletes = () => {
   const [error, setError] = useState<string | null>(null);
   const [displayLimit, setDisplayLimit] = useState(6);
 
+  const [selectedSport, setSelectedSport] = useState("all");
+  const [selectedNation, setSelectedNation] = useState("all");
+
   useEffect(() => {
     const fetchAthletes = async () => {
       try {
         setLoading(true);
         const encodedQuery = encodeURIComponent(SPARQL_QUERY);
-        const url = `https://dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fdbpedia.org&query=${encodedQuery}&format=application%2Fsparql-results%2Bjson&timeout=30000`;
+        const url = `https://dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fdbpedia.org&query=${encodedQuery}&format=application%2Fsparql-results%2Bjson&timeout=120000`;
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -88,21 +169,28 @@ const Athletes = () => {
         const bindings = data.results.bindings;
 
         const parsedAthletes: Athlete[] = bindings.map((binding: any, index: number) => {
-          // Fallback name from URI if label is missing
+          // Extract name from URI and decode special characters
           const uri = binding.personne.value;
-          const nameFromUri = uri.split('/').pop().replace(/_/g, ' ');
+          const nameFromUri = decodeURIComponent(uri.split('/').pop() || "").replace(/_/g, ' ');
+
+          // Calculate years
+          const minYear = binding.anneeMin?.value;
+          const maxYear = binding.anneeMax?.value;
+          const yearsStr = (minYear && maxYear)
+            ? (minYear === maxYear ? `${minYear}` : `${minYear} - ${maxYear}`)
+            : "N/A";
 
           return {
             id: uri,
-            name: binding.name?.value || nameFromUri,
-            country: "N/A", // Not returned by query
-            sport: "N/A",   // Not returned by query
+            name: nameFromUri,
+            country: binding.nation?.value || "N/A",
+            sport: binding.discipline?.value || "N/A",
             gold: parseInt(binding.nbOr?.value || "0"),
             silver: parseInt(binding.nbArgent?.value || "0"),
             bronze: parseInt(binding.nbBronze?.value || "0"),
             total: parseInt(binding.total?.value || "0"),
             editions: 1,      // Placeholder
-            years: "N/A"      // Placeholder
+            years: yearsStr
           };
         });
 
@@ -118,23 +206,40 @@ const Athletes = () => {
     fetchAthletes();
   }, []);
 
-  // Filter athletes based on search
+  // Extract unique values for filters
+  const uniqueSports = useMemo(() => {
+    const sports = new Set(allAthletes.map(a => a.sport).filter(s => s !== "N/A"));
+    return Array.from(sports).sort();
+  }, [allAthletes]);
+
+  const uniqueNations = useMemo(() => {
+    const nations = new Set(allAthletes.map(a => a.country).filter(c => c !== "N/A"));
+    return Array.from(nations).sort();
+  }, [allAthletes]);
+
+  // Filter athletes based on search and dropdowns
   const filteredAthletes = useMemo(() => {
-    if (!searchQuery) return allAthletes;
-    return allAthletes.filter(athlete =>
-      athlete.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [allAthletes, searchQuery]);
+    return allAthletes.filter(athlete => {
+      const matchesSearch = athlete.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSport = selectedSport === "all" || athlete.sport === selectedSport;
+      const matchesNation = selectedNation === "all" || athlete.country === selectedNation;
+
+      return matchesSearch && matchesSport && matchesNation;
+    });
+  }, [allAthletes, searchQuery, selectedSport, selectedNation]);
 
   // Apply pagination
   const displayedAthletes = filteredAthletes.slice(0, displayLimit);
 
   // Dynamic stats
-  const stats = useMemo(() => [
-    { label: "Athlètes olympiques", value: `${(allAthletes.length / 1000).toFixed(1)}K+`, icon: Users }, // Approx
-    { label: "Multi-médaillés", value: allAthletes.filter(a => a.total > 1).length.toLocaleString(), icon: Medal },
-    { label: "Disciplines", value: "N/A", icon: Activity }, // Not available in query
-  ], [allAthletes]);
+  const stats = useMemo(() => {
+    const uniqueDisciplines = new Set(allAthletes.map(a => a.sport)).size;
+    return [
+      { label: "Athlètes olympiques", value: `${(allAthletes.length / 1000).toFixed(1)}K+`, icon: Users }, // Approx
+      { label: "Multi-médaillés", value: allAthletes.filter(a => a.total > 1).length.toLocaleString(), icon: Medal },
+      { label: "Disciplines", value: uniqueDisciplines.toLocaleString(), icon: Activity },
+    ];
+  }, [allAthletes]);
 
   const handleLoadMore = () => {
     setDisplayLimit(prev => prev * 2);
@@ -188,23 +293,38 @@ const Athletes = () => {
                   className="pl-10"
                 />
               </div>
-              <Button variant="outline" className="gap-2" disabled>
-                <Filter className="h-4 w-4" />
-                Sport
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" className="gap-2" disabled>
-                Nation
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" className="gap-2" disabled>
-                Période
-                <ChevronDown className="h-4 w-4" />
-              </Button>
+
+              {/* Sport Filter */}
+              <div className="relative">
+                <select
+                  className="h-9 w-full appearance-none rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 pr-8"
+                  value={selectedSport}
+                  onChange={(e) => setSelectedSport(e.target.value)}
+                >
+                  <option value="all">Tous les sports</option>
+                  {uniqueSports.map(sport => (
+                    <option key={sport} value={sport}>{sport}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 opacity-50 pointer-events-none" />
+              </div>
+
+              {/* Nation Filter */}
+              <div className="relative">
+                <select
+                  className="h-9 w-full appearance-none rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 pr-8"
+                  value={selectedNation}
+                  onChange={(e) => setSelectedNation(e.target.value)}
+                >
+                  <option value="all">Toutes les nations</option>
+                  {uniqueNations.map(nation => (
+                    <option key={nation} value={nation}>{nation}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 opacity-50 pointer-events-none" />
+              </div>
+
             </div>
-            <p className="text-xs text-muted-foreground mt-2 italic">
-              * Filtres Sport/Nation/Période indisponibles pour le moment (données manquantes).
-            </p>
           </div>
         </section>
 
@@ -282,7 +402,7 @@ const Athletes = () => {
                           <span className="text-muted-foreground"> médailles totales</span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {athlete.editions} éditions
+                          {/* Editions removed */}
                         </div>
                       </div>
                     </div>
