@@ -46,8 +46,10 @@ const Header = () => {
           ))}
         </nav>
 
-        <Button variant="gold" size="sm" className="hidden sm:flex">
-          Explorer DBpedia
+        <Button variant="gold" size="sm" className="hidden sm:flex" asChild>
+          <a href="https://dbpedia.org/page/Olympic_Games" target="_blank" rel="noopener noreferrer">
+            Explorer DBpedia
+          </a>
         </Button>
       </div>
     </header>
