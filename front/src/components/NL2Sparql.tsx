@@ -14,9 +14,9 @@ const NL2Sparql = () => {
   const { setSparqlQuery, setExecuteQuery } = useSparql();
 
   const exampleQueries = [
-    "Quels athlètes français ont gagné le plus de médailles d'or en athlétisme ?",
-    "Quels pays dominent la natation depuis 2000 ?",
-    "Qui sont les athlètes ayant participé à plus de 4 éditions des JO ?",
+    "Quel est l'athlète le plus médaillé ?",
+    "Quelles sont les médailles par pays ?",
+    "Quels sont les athlètes et leurs médailles ?",
   ];
 
   const handleGenerate = async () => {

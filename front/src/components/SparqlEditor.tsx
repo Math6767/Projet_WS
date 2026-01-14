@@ -5,44 +5,98 @@ import { useSparql } from "@/context/SparqlContext";
 
 const exampleQueries = [
   {
-    name: "Top 10 nations par médailles",
-    query: `SELECT ?country (SAMPLE(?label) AS ?countryLabel) (COUNT(?medal) AS ?medalCount)
+    name: "Top 30 des meilleures nations par médailles",
+    query: `PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?countryCode
+       (MAX(?gold)   AS ?gold)
+       (MAX(?silver) AS ?silver)
+       (MAX(?bronze) AS ?bronze)
 WHERE {
-  ?athlete dbo:olympicGames ?games .
-  ?athlete dbo:country ?country .
-  ?athlete dbo:medal ?medal .
-  ?country rdfs:label ?label .
-  FILTER (lang(?label) = 'fr')
+  dbr:All-time_Olympic_Games_medal_table ?p ?v .
+
+  FILTER(
+    STRSTARTS(STR(?p), STR(dbp:gold)) ||
+    STRSTARTS(STR(?p), STR(dbp:silver)) ||
+    STRSTARTS(STR(?p), STR(dbp:bronze))
+  )
+
+  BIND(REPLACE(STR(?p), "^http://dbpedia.org/property/(gold|silver|bronze)", "") AS ?countryCode)
+  BIND(IF(STRSTARTS(STR(?p), STR(dbp:gold)),   xsd:integer(?v), 0) AS ?gold)
+  BIND(IF(STRSTARTS(STR(?p), STR(dbp:silver)), xsd:integer(?v), 0) AS ?silver)
+  BIND(IF(STRSTARTS(STR(?p), STR(dbp:bronze)), xsd:integer(?v), 0) AS ?bronze)
 }
-GROUP BY ?country
-ORDER BY DESC(?medalCount)
-LIMIT 10`,
+GROUP BY ?countryCode
+ORDER BY DESC(?gold)
+LIMIT 30`,
   },
   {
-    name: "Athlètes français multi-médaillés",
-    query: `SELECT ?athlete (SAMPLE(?label) AS ?athleteLabel) (COUNT(?medal) AS ?medalCount)
+    name: "Top 20 des athlètes les plus médaillés",
+    query: `PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?personne ?nbOr ?nbArgent ?nbBronze (?nbOr + ?nbArgent + ?nbBronze AS ?total)
 WHERE {
-  ?athlete dbo:country dbr:France .
-  ?athlete dbo:medal ?medal .
-  ?athlete rdfs:label ?label .
-  FILTER (lang(?label) = 'fr')
-}
-GROUP BY ?athlete
-HAVING (COUNT(?medal) > 2)
-ORDER BY DESC(?medalCount)`,
-  },
   {
-    name: "Sports les plus disputés",
-    query: `SELECT ?sport (SAMPLE(?label) AS ?sportLabel) (COUNT(?event) AS ?eventCount)
-WHERE {
-  ?event dbo:sport ?sport .
-  ?event rdf:type dbo:OlympicEvent .
-  ?sport rdfs:label ?label .
-  FILTER (lang(?label) = 'fr')
+    # --- DÉBUT DE LA SOUS-REQUÊTE ---
+    SELECT ?personne
+           (SUM(IF(?typeMedaille = "Or", 1, 0)) AS ?nbOr)
+           (SUM(IF(?typeMedaille = "Argent", 1, 0)) AS ?nbArgent)
+           (SUM(IF(?typeMedaille = "Bronze", 1, 0)) AS ?nbBronze)
+    WHERE {
+       # 1. On récupère les liens événement -> personne
+       {
+         ?evenement dbp:gold ?personne .
+         BIND("Or" AS ?typeMedaille)
+       }
+       UNION
+       {
+         ?evenement dbp:silver ?personne .
+         BIND("Argent" AS ?typeMedaille)
+       }
+       UNION
+       {
+         ?evenement dbp:bronze ?personne .
+         BIND("Bronze" AS ?typeMedaille)
+       }
+
+       # 2. On s'assure que c'est une personne
+       ?personne a dbo:Person .
+
+       # 3. --- LE FILTRE OLYMPICS ---
+       # On récupère le nom de l'événement
+       ?evenement rdfs:label ?nomEvenement .
+      
+       # On convertit en minuscules (lcase) et on cherche "olympics"
+       FILTER (CONTAINS(LCASE(STR(?nomEvenement)), "olympics"))
+    }
+    GROUP BY ?personne
+    # --- FIN DE LA SOUS-REQUÊTE ---
+  }
 }
-GROUP BY ?sport
-ORDER BY DESC(?eventCount)
+ORDER BY DESC(?nbOr) DESC(?nbArgent) DESC(?nbBronze)
 LIMIT 20`,
+  },
+  {
+    name: "Disciplines autour de l'athlétisme et le cyclisme aux JO",
+    query: `PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?e ?nom
+WHERE {
+  ?e dbp:gold ?x .
+  ?e rdfs:label ?nom .
+
+  # On filtre pour ne garder que les épreuves, pas les pays
+  FILTER (CONTAINS(LCASE(STR(?nom)), "olympics"))
+  FILTER (REGEX(STR(?nom), "Athletics|Cycling", "i"))
+}
+LIMIT 30
+
+`,
   },
 ];
 
