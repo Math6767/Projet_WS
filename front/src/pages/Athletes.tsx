@@ -348,7 +348,6 @@ const Athletes = () => {
                       key={athlete.id}
                       className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-silver/50 hover:glow-subtle cursor-pointer"
                     >
-                      {/* Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary font-display font-bold text-lg select-none">
@@ -362,7 +361,6 @@ const Athletes = () => {
                             </div>
                           </div>
                         </div>
-                        <Star className="h-5 w-5 text-gold opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
 
                       {/* Sport & Years */}
@@ -429,30 +427,7 @@ const Athletes = () => {
           </div>
         </section>
 
-        {/* Featured Analysis */}
-        <section className="border-t border-border py-16">
-          <div className="container">
-            <h2 className="font-display text-2xl font-bold mb-8">Analyses d'athlètes</h2>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-xl border border-border bg-card p-6 hover:border-silver/50 transition-colors cursor-pointer">
-                <Trophy className="h-8 w-8 text-gold mb-4" />
-                <h3 className="font-display text-lg font-semibold mb-2">Athlètes multi-médaillés</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Découvrez les athlètes ayant remporté le plus de médailles dans l'histoire olympique.
-                </p>
-                <Button variant="outline" size="sm">Explorer</Button>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-6 hover:border-silver/50 transition-colors cursor-pointer">
-                <Activity className="h-8 w-8 text-silver mb-4" />
-                <h3 className="font-display text-lg font-semibold mb-2">Contribution nationale</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Analysez l'impact des athlètes sur les performances globales de leur nation.
-                </p>
-                <Button variant="outline" size="sm">Explorer</Button>
-              </div>
-            </div>
-          </div>
-        </section>
+
       </main>
 
       <footer className="border-t border-border py-8">
