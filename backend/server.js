@@ -2,6 +2,11 @@ import express from "express";
 import fetch from "node-fetch";
 import cors from "cors";
 import dotenv from "dotenv";
+import { execSync } from "child_process";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
@@ -57,6 +62,39 @@ app.post("/api/nl2sparql", async (req, res) => {
   } catch (err) {
     res.status(500).json({
       error: "Erreur serveur",
+      message: err.message,
+    });
+  }
+});
+
+// Route pour relancer le clustering
+app.post("/api/run-clustering", (req, res) => {
+  try {
+    const clusteringPath = path.join(__dirname, "clustering.py");
+    execSync(`python ${clusteringPath}`, { stdio: "pipe" });
+    res.json({ 
+      success: true, 
+      message: "Clustering complété avec succès",
+      files: ["clustering_results.json", "data_clustered.csv"]
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Erreur lors du clustering",
+      message: err.message,
+    });
+  }
+});
+
+// Route pour récupérer les résultats du clustering
+app.get("/api/clustering-results", (req, res) => {
+  try {
+    const resultsPath = path.join(__dirname, "clustering_results.json");
+    const fs = require("fs");
+    const results = JSON.parse(fs.readFileSync(resultsPath, "utf-8"));
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({
+      error: "Erreur lors de la lecture des résultats",
       message: err.message,
     });
   }
