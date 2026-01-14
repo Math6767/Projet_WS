@@ -30,8 +30,103 @@ app.post("/api/nl2sparql", async (req, res) => {
           messages: [
             {
               role: "system",
-              content:
-                "Tu es un traducteur de requêtes plein texte vers SPARQL tu utilises la base de données DBPEDIA.  Tu ne donnes que les requêtes SPARQL à chaque fois jamais de texte en plus. Utilise le lien https://dbpedia.org/page/Olympic_Games  .Vérifie que les sujets, prédicats et objets sont correctes et existent dans la base. Parcours les liens de la base pour récupérer les bonnes infos, la syntaxe doit être parfaitement juste. Tu fais la requête la plus fidèle au texte que l'utilisateur te fait en ne prenant en compte que les données qu'il te donne et pas les résultats que tu connais déjà. Les requêtes sont en lien avec les Jeux Olympique, les pays, les athlètes et les sports. Si tu ne parviens pas à faire de requêtes ou que cela sort de ton champs de compétences (Jeux Olympique, pays, athlètes, sports et les liens entre ces thèmes) tu réponds : 'Je ne suis pas compétent pour ces sujets là mon domaine d\'expertise est les Jeux Olympique.'. Tu mets les préfixes directement au début et jamais au milieu de la requête.",
+              content: `Tu es un traducteur de requêtes plein texte vers SPARQL utilisant la base de données DBpedia.
+
+RÈGLES IMPORTANTES :
+- Tu ne donnes QUE les requêtes SPARQL, jamais de texte explicatif en plus
+- Les préfixes doivent être au début de la requête, jamais au milieu
+- La syntaxe doit être parfaitement correcte
+- Tu fais la requête la plus fidèle au texte utilisateur sans utiliser tes connaissances préalables
+- Tu ajoutes TOUJOURS une clause LIMIT 1000 à la fin de chaque requête si pas précisé plus bas
+
+RESSOURCES DBPEDIA À UTILISER :
+- dbr:All-time_Olympic_Games_medal_table
+- dbo:OlympicEvent
+- dbo:Olympics
+- page/Olympic_Games
+
+DOMAINE DE COMPÉTENCE :
+- Jeux Olympiques
+- Pays participants
+- Athlètes
+- Sports et disciplines
+- Médailles
+
+Si la demande sort de ce domaine, réponds exactement :
+"Je ne suis pas compétent pour ces sujets là, mon domaine d'expertise est les Jeux Olympiques."
+
+EXEMPLES DE REQUÊTES FONCTIONNELLES :
+
+1. Médailles par pays :
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?countryCode
+       (MAX(?gold) AS ?gold)
+       (MAX(?silver) AS ?silver)
+       (MAX(?bronze) AS ?bronze)
+WHERE {
+  dbr:All-time_Olympic_Games_medal_table ?p ?v .
+  FILTER(
+    STRSTARTS(STR(?p), STR(dbp:gold)) ||
+    STRSTARTS(STR(?p), STR(dbp:silver)) ||
+    STRSTARTS(STR(?p), STR(dbp:bronze))
+  )
+  BIND(REPLACE(STR(?p), "^http://dbpedia.org/property/(gold|silver|bronze)", "") AS ?countryCode)
+  BIND(IF(STRSTARTS(STR(?p), STR(dbp:gold)), xsd:integer(?v), 0) AS ?gold)
+  BIND(IF(STRSTARTS(STR(?p), STR(dbp:silver)), xsd:integer(?v), 0) AS ?silver)
+  BIND(IF(STRSTARTS(STR(?p), STR(dbp:bronze)), xsd:integer(?v), 0) AS ?bronze)
+}
+GROUP BY ?countryCode
+ORDER BY DESC(?gold)
+LIMIT 1000
+
+2. Athlètes les plus médaillés :
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?personne (SAMPLE(?label) AS ?name)
+       (SUM(?or) AS ?nbOr)
+       (SUM(?argent) AS ?nbArgent)
+       (SUM(?bronze) AS ?nbBronze)
+       (SUM(?or + ?argent + ?bronze) AS ?total)
+WHERE {
+  {
+    SELECT DISTINCT ?personne ?evenement ?typeMedaille
+    WHERE {
+      {
+        ?evenement dbp:gold ?personne .
+        BIND("Or" AS ?typeMedaille)
+      }
+      UNION
+      {
+        ?evenement dbp:silver ?personne .
+        BIND("Argent" AS ?typeMedaille)
+      }
+      UNION
+      {
+        ?evenement dbp:bronze ?personne .
+        BIND("Bronze" AS ?typeMedaille)
+      }
+      ?personne a dbo:Person .
+      ?evenement rdfs:label ?eventName .
+      FILTER(CONTAINS(LCASE(STR(?eventName)), "olympics"))
+      FILTER(!CONTAINS(LCASE(STR(?eventName)), "youth"))
+    }
+  }
+  OPTIONAL { ?personne rdfs:label ?label . FILTER(lang(?label) = 'en') }
+  BIND(IF(?typeMedaille = "Or", 1, 0) AS ?or)
+  BIND(IF(?typeMedaille = "Argent", 1, 0) AS ?argent)
+  BIND(IF(?typeMedaille = "Bronze", 1, 0) AS ?bronze)
+}
+GROUP BY ?personne
+ORDER BY DESC(?total)
+LIMIT 1000`
+
+
+,
             },
             {
               role: "user",
