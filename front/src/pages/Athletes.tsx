@@ -1,26 +1,144 @@
-import { useState } from "react";
-import { Users, Medal, Search, Filter, ChevronDown, Star, Trophy, Globe, Activity } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Users, Medal, Search, Filter, ChevronDown, Star, Trophy, Globe, Activity, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+// Interface for Athlete data
+interface Athlete {
+  id: string;
+  name: string;
+  country: string;
+  sport: string;
+  gold: number;
+  silver: number;
+  bronze: number;
+  total: number;
+  editions: number; // Placeholder or calculated if possible
+  years: string;    // Placeholder
+}
+
+const SPARQL_QUERY = `
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?personne (SAMPLE(?label) as ?name)
+       (SUM(?or) AS ?nbOr)
+       (SUM(?argent) AS ?nbArgent)
+       (SUM(?bronze) AS ?nbBronze)
+       (SUM(?or + ?argent + ?bronze) AS ?total)
+WHERE {
+  {
+    SELECT DISTINCT ?personne ?evenement ?typeMedaille
+    WHERE {
+      {
+        ?evenement dbp:gold ?personne .
+        BIND("Or" AS ?typeMedaille)
+      }
+      UNION
+      {
+        ?evenement dbp:silver ?personne .
+        BIND("Argent" AS ?typeMedaille)
+      }
+      UNION
+      {
+        ?evenement dbp:bronze ?personne .
+        BIND("Bronze" AS ?typeMedaille)
+      }
+
+      ?personne a dbo:Person .
+
+      ?evenement rdfs:label ?eventName .
+      FILTER (CONTAINS(LCASE(STR(?eventName)), "olympics"))
+      FILTER (!CONTAINS(LCASE(STR(?eventName)), "youth"))
+    }
+  }
+  
+  OPTIONAL { ?personne rdfs:label ?label . FILTER(lang(?label) = 'en') }
+  
+  BIND(IF(?typeMedaille = "Or", 1, 0) AS ?or)
+  BIND(IF(?typeMedaille = "Argent", 1, 0) AS ?argent)
+  BIND(IF(?typeMedaille = "Bronze", 1, 0) AS ?bronze)
+}
+GROUP BY ?personne
+ORDER BY DESC(?total)
+`;
+
 const Athletes = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [allAthletes, setAllAthletes] = useState<Athlete[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [displayLimit, setDisplayLimit] = useState(6);
 
-  const athletes = [
-    { id: 1, name: "Michael Phelps", country: "USA", sport: "Natation", gold: 23, silver: 3, bronze: 2, editions: 5, years: "2000-2016" },
-    { id: 2, name: "Larisa Latynina", country: "URS", sport: "Gymnastique", gold: 9, silver: 5, bronze: 4, editions: 3, years: "1956-1964" },
-    { id: 3, name: "Paavo Nurmi", country: "FIN", sport: "Athlétisme", gold: 9, silver: 3, bronze: 0, editions: 3, years: "1920-1928" },
-    { id: 4, name: "Mark Spitz", country: "USA", sport: "Natation", gold: 9, silver: 1, bronze: 1, editions: 2, years: "1968-1972" },
-    { id: 5, name: "Carl Lewis", country: "USA", sport: "Athlétisme", gold: 9, silver: 1, bronze: 0, editions: 4, years: "1984-1996" },
-    { id: 6, name: "Usain Bolt", country: "JAM", sport: "Athlétisme", gold: 8, silver: 0, bronze: 0, editions: 3, years: "2008-2016" },
-  ];
+  useEffect(() => {
+    const fetchAthletes = async () => {
+      try {
+        setLoading(true);
+        const encodedQuery = encodeURIComponent(SPARQL_QUERY);
+        const url = `https://dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fdbpedia.org&query=${encodedQuery}&format=application%2Fsparql-results%2Bjson&timeout=30000`;
 
-  const stats = [
-    { label: "Athlètes olympiques", value: "11K+", icon: Users },
-    { label: "Multi-médaillés", value: "2.3K", icon: Medal },
-    { label: "Disciplines", value: "46", icon: Activity },
-  ];
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des données");
+        }
+
+        const data = await response.json();
+        const bindings = data.results.bindings;
+
+        const parsedAthletes: Athlete[] = bindings.map((binding: any, index: number) => {
+          // Fallback name from URI if label is missing
+          const uri = binding.personne.value;
+          const nameFromUri = uri.split('/').pop().replace(/_/g, ' ');
+
+          return {
+            id: uri,
+            name: binding.name?.value || nameFromUri,
+            country: "N/A", // Not returned by query
+            sport: "N/A",   // Not returned by query
+            gold: parseInt(binding.nbOr?.value || "0"),
+            silver: parseInt(binding.nbArgent?.value || "0"),
+            bronze: parseInt(binding.nbBronze?.value || "0"),
+            total: parseInt(binding.total?.value || "0"),
+            editions: 1,      // Placeholder
+            years: "N/A"      // Placeholder
+          };
+        });
+
+        setAllAthletes(parsedAthletes);
+      } catch (err) {
+        console.error(err);
+        setError("Impossible de charger les athlètes.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAthletes();
+  }, []);
+
+  // Filter athletes based on search
+  const filteredAthletes = useMemo(() => {
+    if (!searchQuery) return allAthletes;
+    return allAthletes.filter(athlete =>
+      athlete.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [allAthletes, searchQuery]);
+
+  // Apply pagination
+  const displayedAthletes = filteredAthletes.slice(0, displayLimit);
+
+  // Dynamic stats
+  const stats = useMemo(() => [
+    { label: "Athlètes olympiques", value: `${(allAthletes.length / 1000).toFixed(1)}K+`, icon: Users }, // Approx
+    { label: "Multi-médaillés", value: allAthletes.filter(a => a.total > 1).length.toLocaleString(), icon: Medal },
+    { label: "Disciplines", value: "N/A", icon: Activity }, // Not available in query
+  ], [allAthletes]);
+
+  const handleLoadMore = () => {
+    setDisplayLimit(prev => prev * 2);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,7 +157,7 @@ const Athletes = () => {
                   Analyse des Athlètes
                 </h1>
                 <p className="text-muted-foreground">
-                  Explorez les légendes olympiques et leurs performances
+                  Explorez les légendes olympiques et leurs performances (Données DBpedia)
                 </p>
               </div>
             </div>
@@ -70,100 +188,124 @@ const Athletes = () => {
                   className="pl-10"
                 />
               </div>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" disabled>
                 <Filter className="h-4 w-4" />
                 Sport
                 <ChevronDown className="h-4 w-4" />
               </Button>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" disabled>
                 Nation
                 <ChevronDown className="h-4 w-4" />
               </Button>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2" disabled>
                 Période
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              * Filtres Sport/Nation/Période indisponibles pour le moment (données manquantes).
+            </p>
           </div>
         </section>
 
         {/* Athletes Grid */}
         <section className="py-10">
           <div className="container">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {athletes.map((athlete) => (
-                <div
-                  key={athlete.id}
-                  className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-silver/50 hover:glow-subtle cursor-pointer"
-                >
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary font-display font-bold text-lg">
-                        {athlete.name.split(" ").map(n => n[0]).join("")}
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">Chargement des données depuis DBpedia...</p>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center py-20 text-destructive">
+                {error}
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {displayedAthletes.map((athlete) => (
+                    <div
+                      key={athlete.id}
+                      className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-silver/50 hover:glow-subtle cursor-pointer"
+                    >
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary font-display font-bold text-lg select-none">
+                            {athlete.name && athlete.name.length > 0 ? athlete.name[0].toUpperCase() : "?"}
+                          </div>
+                          <div>
+                            <h3 className="font-display font-semibold line-clamp-1" title={athlete.name}>{athlete.name}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Globe className="h-3 w-3" />
+                              {athlete.country}
+                            </div>
+                          </div>
+                        </div>
+                        <Star className="h-5 w-5 text-gold opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                      <div>
-                        <h3 className="font-display font-semibold">{athlete.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Globe className="h-3 w-3" />
-                          {athlete.country}
+
+                      {/* Sport & Years */}
+                      <div className="mb-4">
+                        <span className="inline-flex rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs">
+                          {athlete.sport}
+                        </span>
+                        <span className="ml-2 text-xs text-muted-foreground">{athlete.years}</span>
+                      </div>
+
+                      {/* Medals */}
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-5 w-5 rounded-full bg-gold/20 flex items-center justify-center">
+                            <span className="text-xs font-bold text-gold">{athlete.gold}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">Or</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-5 w-5 rounded-full bg-silver/20 flex items-center justify-center">
+                            <span className="text-xs font-bold text-silver">{athlete.silver}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">Argent</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-5 w-5 rounded-full bg-bronze/20 flex items-center justify-center">
+                            <span className="text-xs font-bold text-bronze">{athlete.bronze}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">Bronze</span>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="flex items-center justify-between pt-4 border-t border-border">
+                        <div className="text-sm">
+                          <span className="font-bold">{athlete.total}</span>
+                          <span className="text-muted-foreground"> médailles totales</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {athlete.editions} éditions
                         </div>
                       </div>
                     </div>
-                    <Star className="h-5 w-5 text-gold opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-
-                  {/* Sport & Years */}
-                  <div className="mb-4">
-                    <span className="inline-flex rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs">
-                      {athlete.sport}
-                    </span>
-                    <span className="ml-2 text-xs text-muted-foreground">{athlete.years}</span>
-                  </div>
-
-                  {/* Medals */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-5 w-5 rounded-full bg-gold/20 flex items-center justify-center">
-                        <span className="text-xs font-bold text-gold">{athlete.gold}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">Or</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-5 w-5 rounded-full bg-silver/20 flex items-center justify-center">
-                        <span className="text-xs font-bold text-silver">{athlete.silver}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">Argent</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-5 w-5 rounded-full bg-bronze/20 flex items-center justify-center">
-                        <span className="text-xs font-bold text-bronze">{athlete.bronze}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">Bronze</span>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <div className="text-sm">
-                      <span className="font-bold">{athlete.gold + athlete.silver + athlete.bronze}</span>
-                      <span className="text-muted-foreground"> médailles totales</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {athlete.editions} éditions
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* Load more */}
-            <div className="mt-8 text-center">
-              <Button variant="outline" className="gap-2">
-                Charger plus d'athlètes
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </div>
+                {/* Load more */}
+                {displayedAthletes.length < filteredAthletes.length && (
+                  <div className="mt-8 text-center">
+                    <Button variant="outline" className="gap-2" onClick={handleLoadMore}>
+                      Charger plus d'athlètes ({filteredAthletes.length - displayedAthletes.length} restants)
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {filteredAthletes.length === 0 && (
+                  <div className="mt-8 text-center text-muted-foreground">
+                    Aucun athlète trouvé pour "{searchQuery}".
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </section>
 
