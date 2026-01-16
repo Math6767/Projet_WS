@@ -1,11 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Network, Users, Globe, BarChart3 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import GraphView from "@/components/GraphView";
+import Papa from "papaparse";
+
+interface PageRankRow {
+  uri: string;
+  pagerank: number;
+}
+
+
 
 const Graphs = () => {
-  const [athleteRankData] = useState([]);
+
+  const [athleteRankData, setAthleteRankData] = useState<PageRankRow[]>([]);
+
+  useEffect(() => {
+    Papa.parse("/pagerank_output.csv", {
+      header: true,
+      download: true,
+      dynamicTyping: true,
+      complete: (results) => {
+        const data = (results.data as any[])
+          .map((row) => ({
+            uri: row.dbpedia_url,
+            pagerank: row.pagerank,
+          }));
+
+        setAthleteRankData(data);
+      },
+      error: (err) => {
+        console.error("Erreur chargement CSV :", err);
+      },
+    });
+  }, []);
+
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(athleteRankData.length / PAGE_SIZE);
+
+  const paginatedData = athleteRankData.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const [sportColumns] = useState([
     "Athlétisme",
@@ -66,35 +105,65 @@ const Graphs = () => {
                   <thead>
                     <tr className="border-b border-border bg-secondary/30">
                       <th className="px-6 py-4 text-left font-display font-semibold text-sm">Rang</th>
-                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">Athlète</th>
-                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">Sport</th>
-                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">Pays</th>
-                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">PageRank Score</th>
+                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">Lien DBpedia</th>
+                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">PageRank</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {athleteRankData.length === 0 ? (
+                    {paginatedData.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                        <td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">
                           Données à charger...
                         </td>
                       </tr>
                     ) : (
-                      athleteRankData.map((athlete) => (
+                      paginatedData.map((row, index) => (
                         <tr
-                          key={athlete.rank}
+                          key={row.uri}
                           className="border-b border-border hover:bg-secondary/10 transition-colors"
                         >
-                          <td className="px-6 py-4 text-sm font-medium text-bronze">{athlete.rank}</td>
-                          <td className="px-6 py-4 text-sm font-medium">{athlete.name}</td>
-                          <td className="px-6 py-4 text-sm text-muted-foreground">{athlete.sport}</td>
-                          <td className="px-6 py-4 text-sm text-muted-foreground">{athlete.country}</td>
-                          <td className="px-6 py-4 text-sm font-semibold text-gold">{athlete.pagerank.toFixed(4)}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-bronze">
+                            {(currentPage - 1) * PAGE_SIZE + index + 1}
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <a
+                              href={row.uri}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary underline"
+                            >
+                              {row.uri}
+                            </a>
+                          </td>
+                          <td className="px-6 py-4 text-sm font-semibold text-gold">
+                            {row.pagerank}
+                          </td>
                         </tr>
                       ))
                     )}
                   </tbody>
                 </table>
+                <div className="flex items-center justify-between px-6 py-4">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                    className="text-sm disabled:opacity-40"
+                  >
+                    ← Précédent
+                  </button>
+
+                  <span className="text-sm text-muted-foreground">
+                    Page {currentPage} / {totalPages}
+                  </span>
+
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    className="text-sm disabled:opacity-40"
+                  >
+                    Suivant →
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -126,7 +195,6 @@ const Graphs = () => {
                   gexfUrl="/athletes_clustered.gexf"
                   width="100%"
                   height="100%"
-                  defaultNodeColor="#1f77b4"
                   renderLabels={false}
                 />
               </div>
