@@ -295,7 +295,7 @@ const Graphs = () => {
             </div>
 
             <p className="text-sm text-muted-foreground mt-4">
-              Le PageRank mesure l'importance relative de chaque athlète dans le graphe basé sur leurs connections aux sports et aux pays.
+              Le PageRank mesure l'importance relative de chaque athlète dans le graphe basé sur les liens wikipédias entre les pages des athlètes.
             </p>
 
             {/* PageRank Graph Visualization */}
