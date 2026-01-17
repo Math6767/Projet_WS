@@ -12,6 +12,8 @@ const Graphs = () => {
   const [clusterStats, setClusterStats] = useState<any[]>([]);
   const [clusteringV2Data, setClusteringV2Data] = useState<any[]>([]);
   const [clusteringV2Results, setClusteringV2Results] = useState<any>(null);
+  const [v1ItemsPerPage] = useState(20);
+  const [v1CurrentPage, setV1CurrentPage] = useState(1);
   const [v2ItemsPerPage] = useState(30);
   const [v2CurrentPage, setV2CurrentPage] = useState(1);
 
@@ -323,7 +325,7 @@ const Graphs = () => {
                         </td>
                       </tr>
                     ) : (
-                      clusterCountries.slice(0, 50).map((country, idx) => (
+                      clusterCountries.slice(0, v1CurrentPage * v1ItemsPerPage).map((country, idx) => (
                         <tr key={idx} className="border-b border-border hover:bg-secondary/10 transition-colors">
                           <td className="px-6 py-4 text-sm font-medium">{country.countryCode}</td>
                           <td className="px-6 py-4 text-sm text-right">{country.gold}</td>
@@ -345,11 +347,20 @@ const Graphs = () => {
                   </tbody>
                 </table>
               </div>
-              {clusterCountries.length > 50 && (
-                <div className="px-6 py-4 border-t border-border text-center text-sm text-muted-foreground">
-                  Affichage des 50 premiers pays
-                </div>
-              )}
+              <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Affichage: {Math.min(v1CurrentPage * v1ItemsPerPage, clusterCountries.length)} / {clusterCountries.length} pays
+                </p>
+                {v1CurrentPage * v1ItemsPerPage < clusterCountries.length && (
+                  <Button 
+                    onClick={() => setV1CurrentPage(prev => prev + 1)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Charger {Math.min(v1ItemsPerPage, clusterCountries.length - v1CurrentPage * v1ItemsPerPage)} pays supplémentaires
+                  </Button>
+                )}
+              </div>
             </div>
 
             <p className="text-sm text-muted-foreground mt-6">
