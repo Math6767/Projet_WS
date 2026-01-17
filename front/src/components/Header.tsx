@@ -1,4 +1,4 @@
-import { Flame, Database, BarChart3, Network, Sparkles } from "lucide-react";
+import { Flame, BarChart3, Network, Sparkles } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +11,6 @@ const Header = () => {
     { id: "nations", label: "Nations", icon: BarChart3, path: "/nations" },
     { id: "athletes", label: "Athlètes", icon: Sparkles, path: "/athletes" },
     { id: "graphs", label: "Graphes", icon: Network, path: "/graphs" },
-    { id: "sparql", label: "SPARQL", icon: Database, path: "/sparql" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -46,8 +45,10 @@ const Header = () => {
           ))}
         </nav>
 
-        <Button variant="gold" size="sm" className="hidden sm:flex">
-          Explorer DBpedia
+        <Button variant="gold" size="sm" className="hidden sm:flex" asChild>
+          <a href="https://dbpedia.org/page/Olympic_Games" target="_blank" rel="noopener noreferrer">
+            Explorer DBpedia
+          </a>
         </Button>
       </div>
     </header>

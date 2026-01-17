@@ -1,0 +1,534 @@
+{
+  "clustering_summary": {
+    "cluster_0": {
+      "count": 52,
+      "avg_weighted_score": 10.942307692307692,
+      "avg_disciplines": 2.019230769230769,
+      "avg_temporal_span": 14.692307692307692,
+      "avg_medals_per_athlete": 1.1494048443126639,
+      "countries": [
+        {
+          "countryCode": "\"TPE\"",
+          "nbOr": 10,
+          "nbArgent": 8,
+          "nbBronze": 12,
+          "totalMedals": 30,
+          "weightedScore": 58,
+          "numDisciplines": 8,
+          "temporalSpan": 24,
+          "medalsPerAthlete": 1.3043478260869565
+        },
+        {
+          "countryCode": "\"UZB\"",
+          "nbOr": 14,
+          "nbArgent": 5,
+          "nbBronze": 3,
+          "totalMedals": 22,
+          "weightedScore": 55,
+          "numDisciplines": 5,
+          "temporalSpan": 28,
+          "medalsPerAthlete": 1.2941176470588236
+        },
+        {
+          "countryCode": "\"INA\"",
+          "nbOr": 7,
+          "nbArgent": 13,
+          "nbBronze": 7,
+          "totalMedals": 27,
+          "weightedScore": 54,
+          "numDisciplines": 3,
+          "temporalSpan": 36,
+          "medalsPerAthlete": 1.4210526315789473
+        },
+        {
+          "countryCode": "\"LTU\"",
+          "nbOr": 5,
+          "nbArgent": 9,
+          "nbBronze": 5,
+          "totalMedals": 19,
+          "weightedScore": 38,
+          "numDisciplines": 7,
+          "temporalSpan": 36,
+          "medalsPerAthlete": 1.4615384615384615
+        },
+        {
+          "countryCode": "\"THA\"",
+          "nbOr": 5,
+          "nbArgent": 5,
+          "nbBronze": 9,
+          "totalMedals": 19,
+          "weightedScore": 34,
+          "numDisciplines": 3,
+          "temporalSpan": 48,
+          "medalsPerAthlete": 1.2666666666666666
+        },
+        {
+          "countryCode": "\"SRB\"",
+          "nbOr": 6,
+          "nbArgent": 5,
+          "nbBronze": 4,
+          "totalMedals": 15,
+          "weightedScore": 32,
+          "numDisciplines": 6,
+          "temporalSpan": 16,
+          "medalsPerAthlete": 1.3636363636363635
+        },
+        {
+          "countryCode": "\"ALG\"",
+          "nbOr": 5,
+          "nbArgent": 4,
+          "nbBronze": 8,
+          "totalMedals": 17,
+          "weightedScore": 31,
+          "numDisciplines": 3,
+          "temporalSpan": 40,
+          "medalsPerAthlete": 1.3076923076923077
+        },
+        {
+          "countryCode": "\"MAR\"",
+          "nbOr": 6,
+          "nbArgent": 2,
+          "nbBronze": 7,
+          "totalMedals": 15,
+          "weightedScore": 29,
+          "numDisciplines": 2,
+          "temporalSpan": 40,
+          "medalsPerAthlete": 1.5
+        },
+        {
+          "countryCode": "\"MAS\"",
+          "nbOr": 0,
+          "nbArgent": 9,
+          "nbBronze": 7,
+          "totalMedals": 16,
+          "weightedScore": 25,
+          "numDisciplines": 3,
+          "temporalSpan": 32,
+          "medalsPerAthlete": 1.6
+        },
+        {
+          "countryCode": "\"ISR\"",
+          "nbOr": 3,
+          "nbArgent": 6,
+          "nbBronze": 3,
+          "totalMedals": 12,
+          "weightedScore": 24,
+          "numDisciplines": 3,
+          "temporalSpan": 32,
+          "medalsPerAthlete": 1.2
+        }
+      ]
+    },
+    "cluster_1": {
+      "count": 38,
+      "avg_weighted_score": 156.76315789473685,
+      "avg_disciplines": 10.078947368421053,
+      "avg_temporal_span": 79.89473684210526,
+      "avg_medals_per_athlete": 1.5597612016026576,
+      "countries": [
+        {
+          "countryCode": "\"ROU\"",
+          "nbOr": 78,
+          "nbArgent": 87,
+          "nbBronze": 91,
+          "totalMedals": 256,
+          "weightedScore": 499,
+          "numDisciplines": 12,
+          "temporalSpan": 88,
+          "medalsPerAthlete": 1.9692307692307693
+        },
+        {
+          "countryCode": "\"FRG\"",
+          "nbOr": 77,
+          "nbArgent": 69,
+          "nbBronze": 66,
+          "totalMedals": 212,
+          "weightedScore": 435,
+          "numDisciplines": 18,
+          "temporalSpan": 60,
+          "medalsPerAthlete": 1.7520661157024793
+        },
+        {
+          "countryCode": "\"BEL\"",
+          "nbOr": 67,
+          "nbArgent": 54,
+          "nbBronze": 46,
+          "totalMedals": 167,
+          "weightedScore": 355,
+          "numDisciplines": 16,
+          "temporalSpan": 124,
+          "medalsPerAthlete": 1.67
+        },
+        {
+          "countryCode": "\"NZL\"",
+          "nbOr": 67,
+          "nbArgent": 49,
+          "nbBronze": 43,
+          "totalMedals": 159,
+          "weightedScore": 342,
+          "numDisciplines": 14,
+          "temporalSpan": 92,
+          "medalsPerAthlete": 1.6736842105263159
+        },
+        {
+          "countryCode": "\"DEN\"",
+          "nbOr": 45,
+          "nbArgent": 57,
+          "nbBronze": 68,
+          "totalMedals": 170,
+          "weightedScore": 317,
+          "numDisciplines": 15,
+          "temporalSpan": 128,
+          "medalsPerAthlete": 1.6346153846153846
+        },
+        {
+          "countryCode": "\"CUB\"",
+          "nbOr": 62,
+          "nbArgent": 40,
+          "nbBronze": 50,
+          "totalMedals": 152,
+          "weightedScore": 316,
+          "numDisciplines": 11,
+          "temporalSpan": 124,
+          "medalsPerAthlete": 1.5833333333333333
+        },
+        {
+          "countryCode": "\"BUL\"",
+          "nbOr": 42,
+          "nbArgent": 59,
+          "nbBronze": 66,
+          "totalMedals": 167,
+          "weightedScore": 310,
+          "numDisciplines": 13,
+          "temporalSpan": 72,
+          "medalsPerAthlete": 1.3801652892561984
+        },
+        {
+          "countryCode": "\"UKR\"",
+          "nbOr": 41,
+          "nbArgent": 39,
+          "nbBronze": 63,
+          "totalMedals": 143,
+          "weightedScore": 264,
+          "numDisciplines": 22,
+          "temporalSpan": 32,
+          "medalsPerAthlete": 1.4895833333333333
+        },
+        {
+          "countryCode": "\"ESP\"",
+          "nbOr": 38,
+          "nbArgent": 45,
+          "nbBronze": 37,
+          "totalMedals": 120,
+          "weightedScore": 241,
+          "numDisciplines": 24,
+          "temporalSpan": 72,
+          "medalsPerAthlete": 1.4285714285714286
+        },
+        {
+          "countryCode": "\"ROC\"",
+          "nbOr": 34,
+          "nbArgent": 53,
+          "nbBronze": 30,
+          "totalMedals": 117,
+          "weightedScore": 238,
+          "numDisciplines": 17,
+          "temporalSpan": 62,
+          "medalsPerAthlete": 1.9180327868852458
+        }
+      ]
+    },
+    "cluster_2": {
+      "count": 20,
+      "avg_weighted_score": 1190.95,
+      "avg_disciplines": 26.8,
+      "avg_temporal_span": 103.6,
+      "avg_medals_per_athlete": 1.9101915968139114,
+      "countries": [
+        {
+          "countryCode": "\"URS\"",
+          "nbOr": 411,
+          "nbArgent": 309,
+          "nbBronze": 241,
+          "totalMedals": 961,
+          "weightedScore": 2092,
+          "numDisciplines": 21,
+          "temporalSpan": 56,
+          "medalsPerAthlete": 1.9937759336099585
+        },
+        {
+          "countryCode": "\"GER\"",
+          "nbOr": 336,
+          "nbArgent": 339,
+          "nbBronze": 274,
+          "totalMedals": 949,
+          "weightedScore": 1960,
+          "numDisciplines": 37,
+          "temporalSpan": 128,
+          "medalsPerAthlete": 2.036480686695279
+        },
+        {
+          "countryCode": "\"GBR\"",
+          "nbOr": 328,
+          "nbArgent": 322,
+          "nbBronze": 295,
+          "totalMedals": 945,
+          "weightedScore": 1923,
+          "numDisciplines": 32,
+          "temporalSpan": 128,
+          "medalsPerAthlete": 1.6637323943661972
+        },
+        {
+          "countryCode": "\"CHN\"",
+          "nbOr": 350,
+          "nbArgent": 261,
+          "nbBronze": 182,
+          "totalMedals": 793,
+          "weightedScore": 1754,
+          "numDisciplines": 33,
+          "temporalSpan": 40,
+          "medalsPerAthlete": 2.049095607235142
+        },
+        {
+          "countryCode": "\"FRA\"",
+          "nbOr": 248,
+          "nbArgent": 293,
+          "nbBronze": 320,
+          "totalMedals": 861,
+          "weightedScore": 1650,
+          "numDisciplines": 35,
+          "temporalSpan": 128,
+          "medalsPerAthlete": 1.6589595375722543
+        },
+        {
+          "countryCode": "\"ITA\"",
+          "nbOr": 268,
+          "nbArgent": 246,
+          "nbBronze": 283,
+          "totalMedals": 797,
+          "weightedScore": 1579,
+          "numDisciplines": 38,
+          "temporalSpan": 124,
+          "medalsPerAthlete": 1.9204819277108434
+        },
+        {
+          "countryCode": "\"NOR\"",
+          "nbOr": 240,
+          "nbArgent": 218,
+          "nbBronze": 155,
+          "totalMedals": 613,
+          "weightedScore": 1311,
+          "numDisciplines": 21,
+          "temporalSpan": 124,
+          "medalsPerAthlete": 2.39453125
+        },
+        {
+          "countryCode": "\"SWE\"",
+          "nbOr": 210,
+          "nbArgent": 227,
+          "nbBronze": 206,
+          "totalMedals": 643,
+          "weightedScore": 1290,
+          "numDisciplines": 27,
+          "temporalSpan": 124,
+          "medalsPerAthlete": 1.8061797752808988
+        },
+        {
+          "countryCode": "\"AUS\"",
+          "nbOr": 189,
+          "nbArgent": 188,
+          "nbBronze": 200,
+          "totalMedals": 577,
+          "weightedScore": 1143,
+          "numDisciplines": 24,
+          "temporalSpan": 128,
+          "medalsPerAthlete": 2.083032490974729
+        },
+        {
+          "countryCode": "\"JPN\"",
+          "nbOr": 172,
+          "nbArgent": 180,
+          "nbBronze": 172,
+          "totalMedals": 524,
+          "weightedScore": 1048,
+          "numDisciplines": 32,
+          "temporalSpan": 104,
+          "medalsPerAthlete": 1.9848484848484849
+        }
+      ]
+    },
+    "cluster_3": {
+      "count": 1,
+      "avg_weighted_score": 15.0,
+      "avg_disciplines": 1.0,
+      "avg_temporal_span": 4.0,
+      "avg_medals_per_athlete": 7.0,
+      "countries": [
+        {
+          "countryCode": "\"ZIM\"",
+          "nbOr": 2,
+          "nbArgent": 4,
+          "nbBronze": 1,
+          "totalMedals": 7,
+          "weightedScore": 15,
+          "numDisciplines": 1,
+          "temporalSpan": 4,
+          "medalsPerAthlete": 7.0
+        }
+      ]
+    },
+    "cluster_4": {
+      "count": 1,
+      "avg_weighted_score": 5819.0,
+      "avg_disciplines": 43.0,
+      "avg_temporal_span": 128.0,
+      "avg_medals_per_athlete": 1.9477941176470588,
+      "countries": [
+        {
+          "countryCode": "\"USA\"",
+          "nbOr": 1180,
+          "nbArgent": 810,
+          "nbBronze": 659,
+          "totalMedals": 2649,
+          "weightedScore": 5819,
+          "numDisciplines": 43,
+          "temporalSpan": 128,
+          "medalsPerAthlete": 1.9477941176470588
+        }
+      ]
+    },
+    "cluster_5": {
+      "count": 30,
+      "avg_weighted_score": 45.63333333333333,
+      "avg_disciplines": 3.533333333333333,
+      "avg_temporal_span": 24.333333333333332,
+      "avg_medals_per_athlete": 2.1528121663400444,
+      "countries": [
+        {
+          "countryCode": "\"EUN\"",
+          "nbOr": 58,
+          "nbArgent": 39,
+          "nbBronze": 40,
+          "totalMedals": 137,
+          "weightedScore": 292,
+          "numDisciplines": 14,
+          "temporalSpan": 16,
+          "medalsPerAthlete": 2.5849056603773586
+        },
+        {
+          "countryCode": "\"JAM\"",
+          "nbOr": 35,
+          "nbArgent": 46,
+          "nbBronze": 23,
+          "totalMedals": 104,
+          "weightedScore": 220,
+          "numDisciplines": 1,
+          "temporalSpan": 76,
+          "medalsPerAthlete": 2.6666666666666665
+        },
+        {
+          "countryCode": "\"CZE\"",
+          "nbOr": 25,
+          "nbArgent": 25,
+          "nbBronze": 39,
+          "totalMedals": 89,
+          "weightedScore": 164,
+          "numDisciplines": 15,
+          "temporalSpan": 32,
+          "medalsPerAthlete": 1.934782608695652
+        },
+        {
+          "countryCode": "\"SLO\"",
+          "nbOr": 17,
+          "nbArgent": 19,
+          "nbBronze": 20,
+          "totalMedals": 56,
+          "weightedScore": 109,
+          "numDisciplines": 13,
+          "temporalSpan": 32,
+          "medalsPerAthlete": 1.8064516129032258
+        },
+        {
+          "countryCode": "\"CRO\"",
+          "nbOr": 16,
+          "nbArgent": 18,
+          "nbBronze": 12,
+          "totalMedals": 46,
+          "weightedScore": 96,
+          "numDisciplines": 10,
+          "temporalSpan": 32,
+          "medalsPerAthlete": 2.1904761904761907
+        },
+        {
+          "countryCode": "\"ETH\"",
+          "nbOr": 20,
+          "nbArgent": 10,
+          "nbBronze": 16,
+          "totalMedals": 46,
+          "weightedScore": 96,
+          "numDisciplines": 1,
+          "temporalSpan": 64,
+          "medalsPerAthlete": 2.0
+        },
+        {
+          "countryCode": "\"SVK\"",
+          "nbOr": 7,
+          "nbArgent": 13,
+          "nbBronze": 6,
+          "totalMedals": 26,
+          "weightedScore": 53,
+          "numDisciplines": 8,
+          "temporalSpan": 28,
+          "medalsPerAthlete": 1.8571428571428572
+        },
+        {
+          "countryCode": "\"GEO\"",
+          "nbOr": 9,
+          "nbArgent": 7,
+          "nbBronze": 10,
+          "totalMedals": 26,
+          "weightedScore": 51,
+          "numDisciplines": 4,
+          "temporalSpan": 28,
+          "medalsPerAthlete": 1.7333333333333334
+        },
+        {
+          "countryCode": "\"AZE\"",
+          "nbOr": 5,
+          "nbArgent": 11,
+          "nbBronze": 8,
+          "totalMedals": 24,
+          "weightedScore": 45,
+          "numDisciplines": 5,
+          "temporalSpan": 28,
+          "medalsPerAthlete": 2.0
+        },
+        {
+          "countryCode": "\"ARM\"",
+          "nbOr": 3,
+          "nbArgent": 9,
+          "nbBronze": 7,
+          "totalMedals": 19,
+          "weightedScore": 34,
+          "numDisciplines": 3,
+          "temporalSpan": 28,
+          "medalsPerAthlete": 1.7272727272727273
+        }
+      ]
+    }
+  },
+  "cluster_interpretation": {
+    "cluster_0": "Superpuissances multidisciplinaires - Performance élevée, nombreuses disciplines",
+    "cluster_1": "Spécialistes régionaux - Bon score mais moins de disciplines",
+    "cluster_2": "Participants modérés - Performance modérée, participation variée",
+    "cluster_3": "Participants occasionnels - Faible performance, peu de disciplines",
+    "cluster_4": "Nouveaux venus - Très peu de médailles, participation récente",
+    "cluster_5": "Historiques stables - Longue tradition, peu d'athlètes mais réguliers"
+  },
+  "features_used": [
+    "weightedScore (or*3 + argent*2 + bronze*1)",
+    "numDisciplines (nombre de sports différents)",
+    "temporalSpan (max_année - min_année)",
+    "medalsPerAthlete (total_médailles / nb_athlètes)"
+  ]
+}
