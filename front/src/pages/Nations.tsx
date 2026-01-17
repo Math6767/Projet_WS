@@ -36,7 +36,7 @@ interface EditionMedalRow {
   total: number;
 }
 
-// Requête SPARQL placeholder - À REMPLACER par la vraie requête
+// Requête SPARQL principale pour les médailles par pays
 const SPARQL_QUERY = `
 PREFIX dbr: <http://dbpedia.org/resource/>
 PREFIX dbp: <http://dbpedia.org/property/>
@@ -71,7 +71,7 @@ PREFIX dbp: <http://dbpedia.org/property/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?olympics ?year ?hostCity ?hostCountry ?season
+SELECT DISTINCT ?olympics ?year ?hostCity ?hostCountry ?season
 WHERE {
   VALUES ?olympics {
     dbr:1896_Summer_Olympics_medal_table
@@ -616,17 +616,32 @@ const transformSparqlResults = (results: any): Nation[] => {
 // Transformer les résultats des éditions olympiques
 const transformOlympicsResults = (results: any): OlympicsEdition[] => {
   const bindings = results?.results?.bindings || [];
-  return bindings.map((b: any) => {
+
+  // Construire et dédupliquer par ressource (évite doublons quand plusieurs hôtes/labels)
+  const map = new Map<string, OlympicsEdition>();
+  for (const b of bindings) {
     const resource = b.olympics?.value || "";
     const year = parseInt(b.year?.value || "0", 10);
     const hostCityRaw = b.hostCity?.value || "-";
-    const hostCity = String(hostCityRaw).replace(/,\s*$/, "").trim();
+    const hostCity = String(hostCityRaw).replace(/,\s*$/, "").trim() || "-";
     const hostCountryRaw = b.hostCountry?.value || "-";
     const hostCountryInput = typeof hostCountryRaw === "string" ? hostCountryRaw : String(hostCountryRaw);
     const season = b.season?.value || "";
-    const hostCountry = normalizeHostCountry(hostCountryInput, hostCity, year, season);
-    return { resource, year, hostCity, hostCountry, season };
-  });
+    const hostCountry = normalizeHostCountry(hostCountryInput, hostCity, year, season) || "-";
+
+    const existing = map.get(resource);
+    if (!existing) {
+      map.set(resource, { resource, year, hostCity, hostCountry, season });
+    } else {
+      // Préférer une ville/pays renseignés plutôt que "-"
+      const betterCity = existing.hostCity === "-" && hostCity !== "-" ? hostCity : existing.hostCity;
+      const betterCountry = existing.hostCountry === "-" && hostCountry !== "-" ? hostCountry : existing.hostCountry;
+      map.set(resource, { resource, year, hostCity: betterCity, hostCountry: betterCountry, season });
+    }
+  }
+
+  // Conserver un ordre logique par année puis saison
+  return Array.from(map.values()).sort((a, b) => a.year - b.year || a.season.localeCompare(b.season));
 };
 
 const INITIAL_DISPLAY_COUNT = 10;
@@ -693,7 +708,7 @@ const Nations = () => {
     fetchOlympics();
   }, []);
 
-  // Construit la requête SPARQL pour une édition donnée (ressource DBpedia)
+  // Construit la requête SPARQL pour une édition donnée
   const buildEditionMedalsQuery = (resourceUrl: string): string => `
 PREFIX dbp: <http://dbpedia.org/property/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
