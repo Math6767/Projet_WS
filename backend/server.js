@@ -195,6 +195,69 @@ app.get("/api/clustering-results", (req, res) => {
   }
 });
 
+// Route pour récupérer les résultats du clustering v2
+app.get("/api/clustering-v2-results", (req, res) => {
+  try {
+    const resultsPath = path.join(__dirname, "clustering_results_v2.json");
+    const fs = require("fs");
+    const results = JSON.parse(fs.readFileSync(resultsPath, "utf-8"));
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({
+      error: "Erreur lors de la lecture des résultats v2",
+      message: err.message,
+    });
+  }
+});
+
+// Route pour récupérer les données clustérisées v2 (CSV parsé)
+app.get("/api/clustering-v2-data", (req, res) => {
+  try {
+    const dataPath = path.join(__dirname, "data_clustered_v2.csv");
+    const fs = require("fs");
+    const csvContent = fs.readFileSync(dataPath, "utf-8");
+    const lines = csvContent.trim().split('\n');
+    
+    // Première ligne = headers
+    const headers = lines[0].split(',');
+    
+    // Traiter les données
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const values = line.split(',');
+      const record = {};
+      
+      headers.forEach((header, idx) => {
+        const rawValue = values[idx];
+        
+        // Convertir les types correctement
+        if (header === 'cluster' || header === 'numDisciplines' || header === 'temporalSpan' ||
+            header === 'nbOr' || header === 'nbArgent' || header === 'nbBronze' || header === 'totalMedals') {
+          record[header] = parseInt(rawValue);
+        } else if (header === 'weightedScore' || header === 'medalsPerAthlete') {
+          record[header] = parseFloat(rawValue);
+        } else {
+          record[header] = rawValue;
+        }
+      });
+      
+      data.push(record);
+    }
+    
+    console.log(`[API] /clustering-v2-data: ${data.length} pays retournés`);
+    res.json(data);
+  } catch (err) {
+    console.error("Erreur parsing v2-data:", err);
+    res.status(500).json({
+      error: "Erreur lors de la lecture des données v2",
+      message: err.message
+    });
+  }
+});
+
 app.listen(3001, () => {
   console.log("Backend NL2SPARQL sur http://localhost:3001");
 });
