@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
-import { Network, Users, Globe, BarChart3 } from "lucide-react";
+import { Network, Users, Globe, BarChart3, TrendingUp } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import GraphView from "@/components/GraphView";
-import { BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
 const Graphs = () => {
   const [athleteRankData] = useState([]);
   const [clusteringData, setClusteringData] = useState<any>(null);
   const [clusterCountries, setClusterCountries] = useState<any[]>([]);
   const [clusterStats, setClusterStats] = useState<any[]>([]);
+  const [clusteringV2Data, setClusteringV2Data] = useState<any[]>([]);
+  const [clusteringV2Results, setClusteringV2Results] = useState<any>(null);
+  const [v2ItemsPerPage] = useState(30);
+  const [v2CurrentPage, setV2CurrentPage] = useState(1);
 
   useEffect(() => {
     // Charger les données de clustering depuis le fichier JSON
@@ -54,6 +58,19 @@ const Graphs = () => {
         setClusterStats(stats);
       })
       .catch((err) => console.error("Erreur chargement clustering:", err));
+    
+    // Charger les données de clustering v2
+    Promise.all([
+      fetch("/clustering_data_v2.json").then(res => res.json()),
+      fetch("/api/clustering-v2-results").then(res => res.json()).catch(() => null)
+    ])
+      .then(([data, results]) => {
+        setClusteringV2Data(data);
+        if (results) {
+          setClusteringV2Results(results);
+        }
+      })
+      .catch((err) => console.error("Erreur chargement clustering v2:", err));
   }, []);
 
   const [sportColumns] = useState([
@@ -338,6 +355,220 @@ const Graphs = () => {
             <p className="text-sm text-muted-foreground mt-6">
               Le clustering détecte les groupes de pays ayant des profils olympiques similaires basés sur leurs performances en médailles d'or, d'argent et de bronze. Les pays sont répartis en 6 clusters selon leur niveau de performance pondéré.
             </p>
+          </div>
+        </section>
+
+        {/* Clustering V2 Section - Profils par disciplines et durée */}
+        <section className="border-b border-border py-16">
+          <div className="container">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-gold/30 bg-gold/5">
+                <TrendingUp className="h-5 w-5 text-gold" />
+              </div>
+              <h2 className="font-display text-2xl font-bold">Clustering V2 : Profils multidimensionnels</h2>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-8">
+              Analyse avancée basée sur 4 dimensions : performance pondérée, diversité des disciplines, durée de participation et efficacité des athlètes.
+            </p>
+
+            {/* Bubble chart : 4 dimensions encodées */}
+            {clusteringV2Data.length > 0 && (
+              <div className="mb-8 rounded-xl border border-border bg-card overflow-hidden">
+                <div className="border-b border-border p-4">
+                  <h3 className="font-display font-semibold">Profils multidimensionnels : 4 dimensions encodées</h3>
+                  <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                    <p><span className="font-semibold">Axe X :</span> Performance (Score pondéré or×3 + argent×2 + bronze×1)</p>
+                    <p><span className="font-semibold">Axe Y :</span> Efficacité (Médailles par athlète)</p>
+                    <p><span className="font-semibold">Opacité :</span> Diversité des disciplines (plus opaque = plus de disciplines)</p>
+                    <p><span className="font-semibold">Couleur :</span> Cluster attribué</p>
+                  </div>
+                </div>
+                <div className="p-6 flex justify-center">
+                  <ResponsiveContainer width="100%" height={750}>
+                    <ScatterChart margin={{ top: 20, right: 30, left: 70, bottom: 180 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="weightedScore" 
+                        name="Performance (Score Pondéré)" 
+                        type="number"
+                        label={{ value: 'Performance (Score Pondéré)', position: 'bottom', offset: 60 }}
+                      />
+                      <YAxis 
+                        dataKey="medalsPerAthlete" 
+                        name="Efficacité (Médailles/Athlète)" 
+                        type="number"
+                        label={{ value: 'Efficacité (Médailles/Athlète)', angle: -90, position: 'insideLeft' }}
+                      />
+                      <Tooltip 
+                        cursor={{ strokeDasharray: '3 3' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-background border border-border rounded-lg p-3 shadow-lg text-xs">
+                                <p className="font-semibold">{data.countryCode}</p>
+                                <p>Performance: {data.weightedScore}</p>
+                                <p>Efficacité: {data.medalsPerAthlete.toFixed(2)}</p>
+                                <p>Disciplines: {data.numDisciplines}</p>
+                                <p>Durée: {data.temporalSpan} ans</p>
+                                <p className="text-gold mt-1">Cluster {data.cluster}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Legend 
+                        verticalAlign="top"
+                        align="right"
+                      />
+                      {[0, 1, 2, 3, 4, 5].map(clusterId => (
+                        <Scatter 
+                          key={clusterId}
+                          name={`Cluster ${clusterId}`}
+                          data={clusteringV2Data
+                            .filter(d => d.cluster === clusterId)
+                            .map(d => ({
+                              ...d,
+                              opacity: Math.min(0.3 + (d.numDisciplines / 50), 1)
+                            }))}
+                          fill={clusterColors[clusterId]}
+                          fillOpacity={0.6}
+                        />
+                      ))}
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {/* Radar Chart : Profil moyen par cluster */}
+            {clusteringV2Results && clusteringV2Results.clustering_summary && (
+              <div className="mb-8 rounded-xl border border-border bg-card overflow-hidden">
+                <div className="border-b border-border p-4">
+                  <h3 className="font-display font-semibold">Profils moyens des clusters</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Caractéristiques normalisées par cluster</p>
+                </div>
+                <div className="p-6 flex justify-center">
+                  <ResponsiveContainer width="100%" height={400}>
+                    <RadarChart data={Object.entries(clusteringV2Results.clustering_summary).map(([key, val]: [string, any]) => ({
+                      cluster: `C${key.split('_')[1]}`,
+                      score: Math.min(val.avg_weighted_score / 100, 100),
+                      disciplines: val.avg_disciplines * 10,
+                      span: val.avg_temporal_span,
+                      efficacité: val.avg_medals_per_athlete * 20
+                    }))}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="cluster" />
+                      <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                      <Radar name="Score" dataKey="score" stroke="#ef4444" fill="#ef4444" fillOpacity={0.25} />
+                      <Radar name="Disciplines" dataKey="disciplines" stroke="#f97316" fill="#f97316" fillOpacity={0.25} />
+                      <Radar name="Durée" dataKey="span" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.25} />
+                      <Legend />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {/* Tableau détaillé V2 - Top 30 pays */}
+            <div className="mb-8 rounded-xl border border-border bg-card overflow-hidden">
+              <div className="border-b border-border p-4">
+                <h3 className="font-display font-semibold">Top pays - Clustering V2</h3>
+                <p className="text-xs text-muted-foreground mt-1">Classement par score pondéré avec analyse multidimensionnelle</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/30">
+                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">Pays</th>
+                      <th className="px-6 py-4 text-right font-display font-semibold text-sm">Score</th>
+                      <th className="px-6 py-4 text-right font-display font-semibold text-sm">Disciplines</th>
+                      <th className="px-6 py-4 text-right font-display font-semibold text-sm">Durée (ans)</th>
+                      <th className="px-6 py-4 text-right font-display font-semibold text-sm">Médailles/Athlète</th>
+                      <th className="px-6 py-4 text-left font-display font-semibold text-sm">Cluster</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clusteringV2Data.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                          Chargement des données...
+                        </td>
+                      </tr>
+                    ) : (
+                      clusteringV2Data
+                        .sort((a, b) => b.weightedScore - a.weightedScore)
+                        .slice(0, v2CurrentPage * v2ItemsPerPage)
+                        .map((country, idx) => (
+                          <tr key={idx} className="border-b border-border hover:bg-secondary/10 transition-colors">
+                            <td className="px-6 py-4 text-sm font-medium">{country.countryCode?.replace(/^"(.*)"$/, '$1')}</td>
+                            <td className="px-6 py-4 text-sm text-right font-semibold text-gold">{country.weightedScore}</td>
+                            <td className="px-6 py-4 text-sm text-right">{country.numDisciplines}</td>
+                            <td className="px-6 py-4 text-sm text-right">{country.temporalSpan}</td>
+                            <td className="px-6 py-4 text-sm text-right text-muted-foreground">{country.medalsPerAthlete.toFixed(2)}</td>
+                            <td className="px-6 py-4 text-sm">
+                              <span
+                                className="px-3 py-1 rounded-full text-white text-xs font-semibold"
+                                style={{ backgroundColor: clusterColors[country.cluster] }}
+                              >
+                                C{country.cluster}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Affichage: {Math.min(v2CurrentPage * v2ItemsPerPage, clusteringV2Data.length)} / {clusteringV2Data.length} pays
+                </p>
+                {v2CurrentPage * v2ItemsPerPage < clusteringV2Data.length && (
+                  <Button 
+                    onClick={() => setV2CurrentPage(prev => prev + 1)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Charger {Math.min(v2ItemsPerPage, clusteringV2Data.length - v2CurrentPage * v2ItemsPerPage)} pays supplémentaires
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Résumé des clusters V2 */}
+            {clusteringV2Results && clusteringV2Results.clustering_summary && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                {Object.entries(clusteringV2Results.clustering_summary).map(([key, cluster]: [string, any]) => (
+                  <div key={key} className="rounded-lg border border-border bg-card p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: clusterColors[parseInt(key.split('_')[1])] }}
+                      ></div>
+                      <h3 className="font-display font-semibold">Cluster {key.split('_')[1]}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">{cluster.count} pays</p>
+                    <div className="space-y-2 text-sm">
+                      <p>Score moyen: <span className="font-semibold">{Math.round(cluster.avg_weighted_score)}</span></p>
+                      <p>Disciplines: <span className="font-semibold">{cluster.avg_disciplines.toFixed(1)}</span></p>
+                      <p>Durée moyenne: <span className="font-semibold">{Math.round(cluster.avg_temporal_span)} ans</span></p>
+                      <p>Efficacité: <span className="font-semibold">{cluster.avg_medals_per_athlete.toFixed(2)} méd/athlète</span></p>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-2">Top 3 pays:</p>
+                      <div className="space-y-1">
+                        {cluster.countries.slice(0, 3).map((country: any, idx: number) => (
+                          <p key={idx} className="text-xs font-medium">{idx + 1}. {country.countryCode?.replace(/^"(.*)"$/, '$1')}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
