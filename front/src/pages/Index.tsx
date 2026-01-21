@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
-import AnalysisSection from "@/components/AnalysisSection";
 import NL2Sparql from "@/components/NL2Sparql";
 import SparqlEditor from "@/components/SparqlEditor";
 import TechStack from "@/components/TechStack";
@@ -26,7 +25,6 @@ const Index = () => {
       <main>
         <HeroSection onExplore={() => scrollToSection("nations")} />
         <NL2Sparql />
-        <AnalysisSection onSectionChange={scrollToSection} />
         <SparqlEditor />
         <TechStack />
       </main>
