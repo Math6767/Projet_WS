@@ -83,7 +83,7 @@ const NL2Sparql = () => {
           <div className="mb-8 text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/5 px-4 py-1.5 text-sm text-gold">
               <Sparkles className="h-4 w-4" />
-              <span>NL2SPARQL — Propulsé par IA</span>
+              <span>NL2SPARQL</span>
             </div>
             <h2 className="font-display text-3xl font-bold md:text-4xl">
               Interrogez en langage naturel
