@@ -94,7 +94,7 @@ app.post("/api/nl2sparql", async (req, res) => {
               PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
               PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-              SELECT ?personne ?discipline ?nation ?anneeMin ?anneeMax
+              SELECT ?personne
                     (SUM(?or) AS ?nbOr)
                     (SUM(?argent) AS ?nbArgent)
                     (SUM(?bronze) AS ?nbBronze)
@@ -125,93 +125,91 @@ app.post("/api/nl2sparql", async (req, res) => {
                     FILTER (!CONTAINS(LCASE(STR(?label)), "youth"))
                   }
                 }
-                
-                # -------- Discipline --------
-                {
-                  SELECT ?personne (SAMPLE(?disciplineExtract) AS ?discipline)
-                  WHERE {
-                    {
-                      ?evtDisc dbp:gold ?personne .
-                    }
-                    UNION
-                    {
-                      ?evtDisc dbp:silver ?personne .
-                    }
-                    UNION
-                    {
-                      ?evtDisc dbp:bronze ?personne .
-                    }
-                    
-                    ?evtDisc rdfs:label ?labelEvenement .
-                    FILTER (LANG(?labelEvenement) = "en")
-                    FILTER (CONTAINS(LCASE(STR(?labelEvenement)), " at "))
-                    
-                    BIND(STRBEFORE(STR(?labelEvenement), " at ") AS ?disciplineExtract)
-                  }
-                  GROUP BY ?personne
-                }
-
-                # -------- Nation --------
-                {
-                  SELECT ?personne (SAMPLE(?nation0) AS ?nation)
-                  WHERE {
-                    {
-                      ?evtNat dbp:gold ?personne .
-                      ?evtNat dbp:goldnoc ?nation0 .
-                    }
-                    UNION
-                    {
-                      ?evtNat dbp:silver ?personne .
-                      ?evtNat dbp:silvernoc ?nation0 .
-                    }
-                    UNION
-                    {
-                      ?evtNat dbp:bronze ?personne .
-                      ?evtNat dbp:bronzenoc ?nation0 .
-                    }
-
-                    ?evtNat rdfs:label ?l .
-                    FILTER (CONTAINS(LCASE(STR(?l)), "olympics"))
-                    FILTER (!CONTAINS(LCASE(STR(?l)), "youth"))
-                  }
-                  GROUP BY ?personne
-                }
-
-                # -------- Années min / max --------
-                {
-                  SELECT ?personne
-                        (MIN(?year) AS ?anneeMin)
-                        (MAX(?year) AS ?anneeMax)
-                  WHERE {
-                    {
-                      ?evtYear dbp:gold ?personne .
-                    }
-                    UNION
-                    {
-                      ?evtYear dbp:silver ?personne .
-                    }
-                    UNION
-                    {
-                      ?evtYear dbp:bronze ?personne .
-                    }
-
-                    ?evtYear dbp:games ?gamesStr .
-                    BIND(xsd:integer(SUBSTR(STR(?gamesStr), 1, 4)) AS ?year)
-
-                    ?evtYear rdfs:label ?lab .
-                    FILTER (CONTAINS(LCASE(STR(?lab)), "olympics"))
-                    FILTER (!CONTAINS(LCASE(STR(?lab)), "youth"))
-                  }
-                  GROUP BY ?personne
-                }
-              
                 BIND(IF(?typeMedaille = "Or", 1, 0) AS ?or)
                 BIND(IF(?typeMedaille = "Argent", 1, 0) AS ?argent)
                 BIND(IF(?typeMedaille = "Bronze", 1, 0) AS ?bronze)
               }
-              GROUP BY ?personne ?discipline ?nation ?anneeMin ?anneeMax
+              GROUP BY ?personne 
               ORDER BY DESC(?total)
+                
+              3. Discipline 
               
+                SELECT ?personne (SAMPLE(?disciplineExtract) AS ?discipline)
+                WHERE {
+                  {
+                    ?evtDisc dbp:gold ?personne .
+                  }
+                  UNION
+                  {
+                    ?evtDisc dbp:silver ?personne .
+                  }
+                  UNION
+                  {
+                    ?evtDisc dbp:bronze ?personne .
+                  }
+                  
+                  ?evtDisc rdfs:label ?labelEvenement .
+                  FILTER (LANG(?labelEvenement) = "en")
+                  FILTER (CONTAINS(LCASE(STR(?labelEvenement)), " at "))
+                  
+                  BIND(STRBEFORE(STR(?labelEvenement), " at ") AS ?disciplineExtract)
+                }
+                GROUP BY ?personne
+              
+
+              4. Nation 
+              
+              SELECT ?personne (SAMPLE(?nation0) AS ?nation)
+              WHERE {
+                {
+                  ?evtNat dbp:gold ?personne .
+                  ?evtNat dbp:goldnoc ?nation0 .
+                }
+                UNION
+                {
+                  ?evtNat dbp:silver ?personne .
+                  ?evtNat dbp:silvernoc ?nation0 .
+                }
+                UNION
+                {
+                  ?evtNat dbp:bronze ?personne .
+                  ?evtNat dbp:bronzenoc ?nation0 .
+                }
+
+                ?evtNat rdfs:label ?l .
+                FILTER (CONTAINS(LCASE(STR(?l)), "olympics"))
+                FILTER (!CONTAINS(LCASE(STR(?l)), "youth"))
+              }
+              GROUP BY ?personne
+                
+
+              5. Années min / max 
+                
+              SELECT ?personne
+                    (MIN(?year) AS ?anneeMin)
+                    (MAX(?year) AS ?anneeMax)
+              WHERE {
+                {
+                  ?evtYear dbp:gold ?personne .
+                }
+                UNION
+                {
+                  ?evtYear dbp:silver ?personne .
+                }
+                UNION
+                {
+                  ?evtYear dbp:bronze ?personne .
+                }
+
+                ?evtYear dbp:games ?gamesStr .
+                BIND(xsd:integer(SUBSTR(STR(?gamesStr), 1, 4)) AS ?year)
+
+                ?evtYear rdfs:label ?lab .
+                FILTER (CONTAINS(LCASE(STR(?lab)), "olympics"))
+                FILTER (!CONTAINS(LCASE(STR(?lab)), "youth"))
+              }
+              GROUP BY ?personne
+
               3. Requête SPARQL des éditions olympiques (été + hiver)
               PREFIX dbr: <http://dbpedia.org/resource/>
               PREFIX dbp: <http://dbpedia.org/property/>

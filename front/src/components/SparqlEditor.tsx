@@ -7,78 +7,76 @@ const exampleQueries = [
   {
     name: "Top 30 des meilleures nations par médailles",
     query: `PREFIX dbr: <http://dbpedia.org/resource/>
-PREFIX dbp: <http://dbpedia.org/property/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX dbp: <http://dbpedia.org/property/>
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?countryCode
-       (MAX(?gold)   AS ?gold)
-       (MAX(?silver) AS ?silver)
-       (MAX(?bronze) AS ?bronze)
-WHERE {
-  dbr:All-time_Olympic_Games_medal_table ?p ?v .
+            SELECT ?countryCode
+                  (MAX(?gold)   AS ?gold)
+                  (MAX(?silver) AS ?silver)
+                  (MAX(?bronze) AS ?bronze)
+            WHERE {
+              dbr:All-time_Olympic_Games_medal_table ?p ?v .
 
-  FILTER(
-    STRSTARTS(STR(?p), STR(dbp:gold)) ||
-    STRSTARTS(STR(?p), STR(dbp:silver)) ||
-    STRSTARTS(STR(?p), STR(dbp:bronze))
-  )
+              FILTER(
+                STRSTARTS(STR(?p), STR(dbp:gold)) ||
+                STRSTARTS(STR(?p), STR(dbp:silver)) ||
+                STRSTARTS(STR(?p), STR(dbp:bronze))
+              )
 
-  BIND(REPLACE(STR(?p), "^http://dbpedia.org/property/(gold|silver|bronze)", "") AS ?countryCode)
-  BIND(IF(STRSTARTS(STR(?p), STR(dbp:gold)),   xsd:integer(?v), 0) AS ?gold)
-  BIND(IF(STRSTARTS(STR(?p), STR(dbp:silver)), xsd:integer(?v), 0) AS ?silver)
-  BIND(IF(STRSTARTS(STR(?p), STR(dbp:bronze)), xsd:integer(?v), 0) AS ?bronze)
-}
-GROUP BY ?countryCode
-ORDER BY DESC(?gold)
-LIMIT 30`,
+              BIND(REPLACE(STR(?p), "^http://dbpedia.org/property/(gold|silver|bronze)", "") AS ?countryCode)
+              BIND(IF(STRSTARTS(STR(?p), STR(dbp:gold)),   xsd:integer(?v), 0) AS ?gold)
+              BIND(IF(STRSTARTS(STR(?p), STR(dbp:silver)), xsd:integer(?v), 0) AS ?silver)
+              BIND(IF(STRSTARTS(STR(?p), STR(dbp:bronze)), xsd:integer(?v), 0) AS ?bronze)
+            }
+            GROUP BY ?countryCode
+            ORDER BY DESC(?gold)
+            LIMIT 30`,
   },
   {
     name: "Top 20 des athlètes les plus médaillés",
     query: `PREFIX dbo: <http://dbpedia.org/ontology/>
-PREFIX dbp: <http://dbpedia.org/property/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+              PREFIX dbp: <http://dbpedia.org/property/>
+              PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+              PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?personne ?nbOr ?nbArgent ?nbBronze (?nbOr + ?nbArgent + ?nbBronze AS ?total)
-WHERE {
-  {
-    # --- DÉBUT DE LA SOUS-REQUÊTE ---
-    SELECT ?personne
-           (SUM(IF(?typeMedaille = "Or", 1, 0)) AS ?nbOr)
-           (SUM(IF(?typeMedaille = "Argent", 1, 0)) AS ?nbArgent)
-           (SUM(IF(?typeMedaille = "Bronze", 1, 0)) AS ?nbBronze)
-    WHERE {
-       # 1. On récupère les liens événement -> personne
-       {
-         ?evenement dbp:gold ?personne .
-         BIND("Or" AS ?typeMedaille)
-       }
-       UNION
-       {
-         ?evenement dbp:silver ?personne .
-         BIND("Argent" AS ?typeMedaille)
-       }
-       UNION
-       {
-         ?evenement dbp:bronze ?personne .
-         BIND("Bronze" AS ?typeMedaille)
-       }
+              SELECT ?personne
+                    (SUM(?or) AS ?nbOr)
+                    (SUM(?argent) AS ?nbArgent)
+                    (SUM(?bronze) AS ?nbBronze)
+                    (SUM(?or + ?argent + ?bronze) AS ?total)
+              WHERE {
+                {
+                  SELECT DISTINCT ?personne ?evenement ?typeMedaille
+                  WHERE {
+                    {
+                      ?evenement dbp:gold ?personne .
+                      BIND("Or" AS ?typeMedaille)
+                    }
+                    UNION
+                    {
+                      ?evenement dbp:silver ?personne .
+                      BIND("Argent" AS ?typeMedaille)
+                    }
+                    UNION
+                    {
+                      ?evenement dbp:bronze ?personne .
+                      BIND("Bronze" AS ?typeMedaille)
+                    }
 
-       # 2. On s'assure que c'est une personne
-       ?personne a dbo:Person .
+                    ?personne a dbo:Person .
 
-       # 3. --- LE FILTRE OLYMPICS ---
-       # On récupère le nom de l'événement
-       ?evenement rdfs:label ?nomEvenement .
-      
-       # On convertit en minuscules (lcase) et on cherche "olympics"
-       FILTER (CONTAINS(LCASE(STR(?nomEvenement)), "olympics"))
-    }
-    GROUP BY ?personne
-    # --- FIN DE LA SOUS-REQUÊTE ---
-  }
-}
-ORDER BY DESC(?nbOr) DESC(?nbArgent) DESC(?nbBronze)
-LIMIT 20`,
+                    ?evenement rdfs:label ?label .
+                    FILTER (CONTAINS(LCASE(STR(?label)), "olympics"))
+                    FILTER (!CONTAINS(LCASE(STR(?label)), "youth"))
+                  }
+                }
+                BIND(IF(?typeMedaille = "Or", 1, 0) AS ?or)
+                BIND(IF(?typeMedaille = "Argent", 1, 0) AS ?argent)
+                BIND(IF(?typeMedaille = "Bronze", 1, 0) AS ?bronze)
+              }
+              GROUP BY ?personne 
+              ORDER BY DESC(?total)
+              LIMIT 20`,
   },
   {
     name: "Disciplines autour de l'athlétisme et le cyclisme aux JO",
