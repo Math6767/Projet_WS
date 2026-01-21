@@ -308,36 +308,6 @@ app.post("/api/nl2sparql", async (req, res) => {
                 BIND(IF(CONTAINS(STR(?olympics), "Summer_Olympics"), "Summer", "Winter") AS ?season)
               }
               ORDER BY ?year
-
-              4. Requête pour une édition donnée :
-
-              PREFIX dbp: <http://dbpedia.org/property/>
-              PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-              SELECT ?countryCode
-                    (SUM(?gold)   AS ?goldMedals)
-                    (SUM(?silver) AS ?silverMedals)
-                    (SUM(?bronze) AS ?bronzeMedals)
-              WHERE {
-                <ressourceURL(à remplacer)> ?p ?v .
-
-                FILTER(
-                    STRSTARTS(STR(?p), STR(dbp:gold))   ||
-                    STRSTARTS(STR(?p), STR(dbp:silver)) ||
-                    STRSTARTS(STR(?p), STR(dbp:bronze))
-                )
-
-                BIND(
-                  REPLACE(STR(?p), "^http://dbpedia.org/property/(gold|silver|bronze)", "") 
-                  AS ?countryCode
-                )
-
-                BIND(IF(STRSTARTS(STR(?p), STR(dbp:gold)),   xsd:integer(?v), 0) AS ?gold)
-                BIND(IF(STRSTARTS(STR(?p), STR(dbp:silver)), xsd:integer(?v), 0) AS ?silver)
-                BIND(IF(STRSTARTS(STR(?p), STR(dbp:bronze)), xsd:integer(?v), 0) AS ?bronze)
-              }
-              GROUP BY ?countryCode
-              ORDER BY DESC(?goldMedals)
               `,
             },
             {
