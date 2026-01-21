@@ -11,6 +11,17 @@ interface PageRankRow {
   pagerank: number;
 }
 
+// Mapping des codes pays IOC vers les noms complets
+const COUNTRY_NAMES: Record<string, string> = {
+  "Afg": "Afghanistan", "Alb": "Albanie", "Alg": "Algérie", "And": "Andorre", "Ang": "Angola", "Ant": "Antigua-et-Barbuda", "Arg": "Argentine", "Arm": "Arménie", "Aru": "Aruba", "Asa": "Samoa américaines", "Aus": "Australie", "Aut": "Autriche", "Aze": "Azerbaïdjan", "Bah": "Bahamas", "Ban": "Bangladesh", "Bar": "Barbade", "Bdi": "Burundi", "Bel": "Belgique", "Ben": "Bénin", "Ber": "Bermudes", "Bhu": "Bhoutan", "Bih": "Bosnie-Herzégovine", "Biz": "Belize", "Blr": "Biélorussie", "Bol": "Bolivie", "Bot": "Botswana", "Bra": "Brésil", "Brn": "Bahreïn", "Bru": "Brunei", "Bul": "Bulgarie", "Bur": "Burkina Faso", "Caf": "Centrafrique", "Cam": "Cambodge", "Can": "Canada", "Cay": "Îles Caïmans", "Cgo": "République du Congo", "Cha": "Tchad", "Chi": "Chili", "Chn": "Chine", "Civ": "Côte d'Ivoire", "Cmr": "Cameroun", "Cod": "RD Congo", "Cok": "Îles Cook", "Col": "Colombie", "Com": "Comores", "Cpv": "Cap-Vert", "Crc": "Costa Rica", "Cro": "Croatie", "Cub": "Cuba", "Cyp": "Chypre", "Cze": "Tchéquie", "Den": "Danemark", "Dji": "Djibouti", "Dma": "Dominique", "Dom": "République Dominicaine", "Ecu": "Équateur", "Egy": "Égypte", "Eri": "Érythrée", "Esa": "Salvador", "Esp": "Espagne", "Est": "Estonie", "Eth": "Éthiopie", "Fij": "Fidji", "Fin": "Finlande", "Fra": "France", "Fsm": "Micronésie", "Gab": "Gabon", "Gam": "Gambie", "Gbr": "Royaume-Uni", "Gbs": "Guinée-Bissau", "Geo": "Géorgie", "Geq": "Guinée équatoriale", "Ger": "Allemagne", "Gha": "Ghana", "Gre": "Grèce", "Grn": "Grenade", "Gua": "Guatemala", "Gui": "Guinée", "Gum": "Guam", "Guy": "Guyana", "Hai": "Haïti", "Hkg": "Hong Kong", "Hon": "Honduras", "Hun": "Hongrie", "Ina": "Indonésie", "Ind": "Inde", "Iri": "Iran", "Irl": "Irlande", "Irq": "Irak", "Isl": "Islande", "Isr": "Israël", "Isv": "Îles Vierges américaines", "Ita": "Italie", "Ivb": "Îles Vierges britanniques", "Jam": "Jamaïque", "Jor": "Jordanie", "Jpn": "Japon", "Kaz": "Kazakhstan", "Ken": "Kenya", "Kgz": "Kirghizistan", "Kir": "Kiribati", "Kor": "Corée du Sud", "Kos": "Kosovo", "Ksa": "Arabie Saoudite", "Kuw": "Koweït", "Lao": "Laos", "Lat": "Lettonie", "Lba": "Libye", "Lbn": "Liban", "Lib": "Liban Français", "Lbr": "Liberia", "Lca": "Sainte-Lucie", "Les": "Lesotho", "Lie": "Liechtenstein", "Ltu": "Lituanie", "Lux": "Luxembourg", "Mad": "Madagascar", "Mar": "Maroc", "Mas": "Malaisie", "Maw": "Malawi", "Mda": "Moldavie", "Mdv": "Maldives", "Mex": "Mexique", "Mgl": "Mongolie", "Mhl": "Îles Marshall", "Mkd": "Macédoine du Nord", "Mli": "Mali", "Mlt": "Malte", "Mne": "Monténégro", "Mon": "Monaco", "Moz": "Mozambique", "Mri": "Maurice", "Mtn": "Mauritanie", "Mya": "Myanmar", "Nam": "Namibie", "Nca": "Nicaragua", "Ned": "Pays-Bas", "Nep": "Népal", "Ngr": "Nigeria", "Nig": "Niger", "Nor": "Norvège", "Nru": "Nauru", "Nzl": "Nouvelle-Zélande", "Oma": "Oman", "Pak": "Pakistan", "Pan": "Panama", "Par": "Paraguay", "Per": "Pérou", "Phi": "Philippines", "Ple": "Palestine", "Plw": "Palaos", "Png": "Papouasie-Nouvelle-Guinée", "Pol": "Pologne", "Por": "Portugal", "Prk": "Corée du Nord", "Pur": "Porto Rico", "Qat": "Qatar", "Rou": "Roumanie", "Rsa": "Afrique du Sud", "Rus": "Russie", "Rwa": "Rwanda", "Sam": "Samoa", "Sen": "Sénégal", "Sey": "Seychelles", "Sgp": "Singapour", "Sin": "Singapour", "Skn": "Saint-Kitts-et-Nevis", "Sle": "Sierra Leone", "Slo": "Slovénie", "Smr": "Saint-Marin", "Sol": "Îles Salomon", "Som": "Somalie", "Srb": "Serbie", "Sri": "Sri Lanka", "Ssd": "Soudan du Sud", "Stp": "Sao Tomé-et-Príncipe", "Sud": "Soudan", "Sui": "Suisse", "Sur": "Suriname", "Svk": "Slovaquie", "Swe": "Suède", "Swz": "Eswatini", "Syr": "Syrie", "Tan": "Tanzanie", "Tga": "Tonga", "Tha": "Thaïlande", "Tjk": "Tadjikistan", "Tkm": "Turkménistan", "Tls": "Timor oriental", "Tog": "Togo", "Tpe": "Taïwan", "Tto": "Trinité-et-Tobago", "Tun": "Tunisie", "Tur": "Turquie", "Tuv": "Tuvalu", "Uae": "Émirats Arabes Unis", "Uga": "Ouganda", "Ukr": "Ukraine", "Uru": "Uruguay", "Usa": "États-Unis", "Uzb": "Ouzbékistan", "Van": "Vanuatu", "Ven": "Venezuela", "Vie": "Viêt Nam", "Vin": "Saint-Vincent-et-les-Grenadines", "Yem": "Yémen", "Zam": "Zambie", "Zim": "Zimbabwe", "Zzx": "Équipe mixte aux Jeux olympiques", "Aho": "Antilles néerlandaises", "Anz": "Australasie", "Boh": "Bohême", "Bwi": "Indes occidentales britanniques", "Eua": "Équipe unifiée d'Allemagne", "Eun": "Équipe Unifiée", "Frg": "Allemagne de l'Ouest", "Gdr": "Allemagne de l'Est", "Ddr": "Allemagne de l'Est", "Scg": "Serbie-et-Monténégro", "Tch": "Tchécoslovaquie", "Urs": "Union Soviétique", "Yug": "Yougoslavie", "Vnm": "Sud-Vietnam", "Ain": "Athlètes Individuels Neutres", "Cor": "Corée (équipe unifiée)", "Eor": "Équipe Olympique des Réfugiés", "Iop": "Participants Olympiques Indépendants", "Ioa": "Athlètes Olympiques Indépendants", "Oar": "Athlètes Olympiques de Russie", "Roc": "Comité Olympique de Russie", "Ror": "Équipe Olympique des Réfugiés", "Bir": "Birmanie", "Cey": "Ceylan", "Dah": "Dahomey", "Hbr": "Honduras britannique", "Iho": "Indes orientales néerlandaises", "Khm": "République khmère", "Mal": "Malaisie", "Nbo": "Bornéo du Nord", "Nrh": "Rhodésie du Nord", "Rau": "République arabe unie", "Rho": "Rhodésie", "Ru1": "Empire russe", "Saa": "Sarre", "Uar": "République arabe unie", "Vol": "Haute-Volta", "Wsm": "Samoa occidentales", "Yar": "Yémen du Nord", "Ymd": "Yémen du Sud", "Zai": "Zaïre", "Irn": "Iran", "Idn": "Indonésie", "Rom": "Roumanie", "Hol": "Pays-Bas", "Sau": "Arabie Saoudite",
+};
+
+// Fonction pour obtenir le nom du pays à partir du code
+const getCountryName = (code: string): string => {
+  const normalizedCode = code.charAt(0).toUpperCase() + code.slice(1).toLowerCase();
+  return COUNTRY_NAMES[normalizedCode] || code;
+};
+
 
 
 const Graphs = () => {
@@ -145,32 +156,32 @@ const Graphs = () => {
     0: { 
       name: "Élites solides", 
       description: "Pays avec une présence olympique forte et régulière",
-      examples: ["Swe", "Nor", "Jpn", "Rus", "Can", "Aus"]
+      examples: ["Suède", "Norvège", "Japon", "Russie", "Canada", "Australie"]
     },
     1: { 
       name: "Participation minimale", 
       description: "Pays avec très peu de médailles historiques",
-      examples: ["Eth", "Irl", "Est", "Mex", "Ind", "...+109 pays"]
+      examples: ["Éthiopie", "Irlande", "Estonie", "Mexique", "Inde", "...+109 pays"]
     },
     2: { 
       name: "Superpuissance absolue", 
       description: "Pays avec une domination exceptionnelle (>3000 médailles)",
-      examples: ["Usa"]
+      examples: ["États-Unis"]
     },
     3: { 
       name: "Grandes puissances", 
       description: "Pays avec une très forte présence olympique",
-      examples: ["Urs", "Chn", "Ger", "Gbr", "Fra", "Ita"]
+      examples: ["Union Soviétique", "Chine", "Allemagne", "Royaume-Uni", "France", "Italie"]
     },
     4: { 
       name: "Pays performeurs", 
       description: "Pays avec une bonne présence olympique",
-      examples: ["Esp", "Den", "Bel", "Bra", "Arg", "...+17 pays"]
+      examples: ["Espagne", "Danemark", "Belgique", "Brésil", "Argentine", "...+17 pays"]
     },
     5: { 
       name: "Bons concurrents", 
       description: "Pays avec une présence olympique modérée mais solide",
-      examples: ["Kor", "Sui", "Aut", "Rou", "Cub", "Pol"]
+      examples: ["Corée du Sud", "Suisse", "Autriche", "Roumanie", "Cuba", "Pologne"]
     },
   };
 
@@ -395,7 +406,7 @@ const Graphs = () => {
                     ) : (
                       clusterCountries.slice(0, v1CurrentPage * v1ItemsPerPage).map((country, idx) => (
                         <tr key={idx} className="border-b border-border hover:bg-secondary/10 transition-colors">
-                          <td className="px-6 py-4 text-sm font-medium">{country.countryCode}</td>
+                          <td className="px-6 py-4 text-sm font-medium">{getCountryName(country.countryCode)}</td>
                           <td className="px-6 py-4 text-sm text-right">{country.gold}</td>
                           <td className="px-6 py-4 text-sm text-right">{country.silver}</td>
                           <td className="px-6 py-4 text-sm text-right">{country.bronze}</td>
@@ -486,7 +497,7 @@ const Graphs = () => {
                             const data = payload[0].payload;
                             return (
                               <div className="bg-background border border-border rounded-lg p-3 shadow-lg text-xs">
-                                <p className="font-semibold">{data.countryCode}</p>
+                                <p className="font-semibold">{getCountryName(data.countryCode)}</p>
                                 <p>Performance: {data.weightedScore}</p>
                                 <p>Efficacité: {data.medalsPerAthlete.toFixed(2)}</p>
                                 <p>Disciplines: {data.numDisciplines}</p>
@@ -582,7 +593,7 @@ const Graphs = () => {
                         .slice(0, v2CurrentPage * v2ItemsPerPage)
                         .map((country, idx) => (
                           <tr key={idx} className="border-b border-border hover:bg-secondary/10 transition-colors">
-                            <td className="px-6 py-4 text-sm font-medium">{country.countryCode?.replace(/^"(.*)"$/, '$1')}</td>
+                            <td className="px-6 py-4 text-sm font-medium">{getCountryName(country.countryCode?.replace(/^"(.*)"$/, '$1'))}</td>
                             <td className="px-6 py-4 text-sm text-right font-semibold text-gold">{country.weightedScore}</td>
                             <td className="px-6 py-4 text-sm text-right">{country.numDisciplines}</td>
                             <td className="px-6 py-4 text-sm text-right">{country.temporalSpan}</td>
@@ -640,7 +651,7 @@ const Graphs = () => {
                       <p className="text-xs text-muted-foreground mb-2">Top 3 pays:</p>
                       <div className="space-y-1">
                         {cluster.countries.slice(0, 3).map((country: any, idx: number) => (
-                          <p key={idx} className="text-xs font-medium">{idx + 1}. {country.countryCode?.replace(/^"(.*)"$/, '$1')}</p>
+                          <p key={idx} className="text-xs font-medium">{idx + 1}. {getCountryName(country.countryCode?.replace(/^"(.*)"$/, '$1'))}</p>
                         ))}
                       </div>
                     </div>
