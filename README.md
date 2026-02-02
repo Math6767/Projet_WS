@@ -2,6 +2,9 @@
 
 Projet de web sémantique - 4A IF
 
+> **Note** : Ce projet a été développé et testé sur Windows.
+
+
 ## Installation
 
 ### Backend
