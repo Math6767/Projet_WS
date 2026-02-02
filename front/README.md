@@ -2,6 +2,8 @@
 
 Projet d'analyse des Jeux Olympiques via DBpedia - IF INSA Lyon
 
+> **Note** : Ce projet a été développé et testé sur Windows.
+
 ## Architecture
 
 - **Frontend** : React + TypeScript + Vite + shadcn-ui + Tailwind CSS
